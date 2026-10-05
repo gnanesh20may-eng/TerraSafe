@@ -8,16 +8,7 @@
       "installCommand": "npm install",
       "buildCommand": "npm run build",
       "devCommand": "npm run dev",
-      "public": true,
-      "outputDirectory": "dist"
-    },
-    "backend": {
-      "root": "backend",
-      "framework": "express",
-      "installCommand": "npm install",
-      "buildCommand": "npm run build",
-      "devCommand": "npm run server",
-      "public": false
+      "public": true
     },
     "api": {
       "root": "backend/app",
@@ -25,43 +16,20 @@
       "installCommand": "pip install -r requirements.txt",
       "buildCommand": "pip install -r requirements.txt",
       "devCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
-      "public": false
+      "public": true
     }
   },
-  "bindings": [
-    {
-      "type": "service",
-      "service": "api",
-      "format": "url",
-      "env": "API_URL"
-    },
-    {
-      "type": "service",
-      "service": "backend",
-      "format": "url",
-      "env": "BACKEND_URL"
-    }
-  ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/v1/(.*)",
       "destination": {
-        "service": "backend",
-        "internal": true
-      }
-    },
-    {
-      "source": "/health",
-      "destination": {
-        "service": "backend",
-        "internal": true
+        "service": "api"
       }
     },
     {
       "source": "/(.*)",
       "destination": {
-        "service": "frontend",
-        "regex": "^(?!/api).*/$"
+        "service": "frontend"
       }
     }
   ]

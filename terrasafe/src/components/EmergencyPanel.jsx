@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-// Backend URL from Vercel bindings
-const BACKEND_BASE = process.env.BACKEND_URL || 'http://localhost:5000';
+// API URL from Vercel env var (VITE_API_URL=/api/v1 in production)
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 import { X, Check, Phone, MapPin, AlertTriangle, Battery, Sun, Moon, Volume2, Mic, Shield, Map, MapPin as MapPinIcon, Menu, Loader2, Pause, Play, AlertCircle, AidKit, Users, Heart, Pulse, Zap, Info, ExclamationCircle, Location, Mail, PhoneForward, MessageCircle, PhoneCall, PhoneForwardIncoming, Eye, EyeOff } from 'lucide-react'
 
 function EmergencyPanel({ emergencyMode, onStop, onCondition, lastLocation, locationTimestamp }) {
@@ -71,7 +71,7 @@ function EmergencyPanel({ emergencyMode, onStop, onCondition, lastLocation, loca
     
     // Try to send to backend if online
     if (networkStatus === 'online') {
-      // Would fetch(`${BACKEND_BASE}/api/emergency`, { method: 'POST', body: ... })
+      // Would fetch(`${API_BASE}/emergency`, { method: 'POST', body: ... })
     }
   }
 

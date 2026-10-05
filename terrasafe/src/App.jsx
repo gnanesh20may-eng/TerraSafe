@@ -15,8 +15,8 @@ import { getStored, setStored } from './services/appService.js'
 import './App.css'
 import EmergencyQuickStart from './components/EmergencyQuickStart'
 
-// Backend URL from Vercel bindings
-const BACKEND_BASE = process.env.BACKEND_URL || 'http://localhost:5000';
+// API URL from Vercel env var (VITE_API_URL=/api/v1 in production)
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 
 const navItems = [
   { to: '/', label: 'Home', icon: Home, end: true },
@@ -190,7 +190,7 @@ function Dashboard({ selectedArea, setSelectedArea, savedPlaces, setSavedPlaces,
     
     // Send to backend
     try {
-      await fetch(`${BACKEND_BASE}/api/emergency`, {
+      await fetch(`${API_BASE}/emergency`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, location, area: areaInfo.name, timestamp: new Date().toISOString() })
@@ -208,7 +208,7 @@ function Dashboard({ selectedArea, setSelectedArea, savedPlaces, setSavedPlaces,
       // Start alive interval
       const interval = setInterval(() => {
         // Send "I'm alive" status
-        fetch(`${BACKEND_BASE}/api/emergency/alive`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location, timestamp: new Date().toISOString() }) })
+        fetch(`${API_BASE}/emergency/alive`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location, timestamp: new Date().toISOString() }) })
           .catch(() => { /* offline storage handled */ })
       }, 30000)
       setAliveInterval(interval)
@@ -223,7 +223,7 @@ function Dashboard({ selectedArea, setSelectedArea, savedPlaces, setSavedPlaces,
       setAliveInterval(null)
     }
     // Send end emergency signal
-    fetch(`${BACKEND_BASE}/api/emergency/end`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+    fetch(`${API_BASE}/emergency/end`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
       .catch(() => {})
   }
 
@@ -231,7 +231,7 @@ function Dashboard({ selectedArea, setSelectedArea, savedPlaces, setSavedPlaces,
   const checkCondition = async (cond) => {
     setCondition(cond)
     try {
-      await fetch(`${BACKEND_BASE}/api/emergency/condition`, {
+      await fetch(`${API_BASE}/emergency/condition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ condition: cond, location, timestamp: new Date().toISOString() })
