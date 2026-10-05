@@ -1,0 +1,288 @@
+{
+  "region": "Nilgiris",
+  "checked_at": "2026-10-05T14:47:44.337827+00:00",
+  "sources": [
+    {
+      "id": "nasa_global_landslide_catalog",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "gsi_bhukosh",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "ndma_landslide_reports",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "nrsc_bhuvan",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "wada_landslide_inventory",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "geological_survey_india_maps",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "emdat_disasters",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "desinventar",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "usgs_landslide_hazards",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "open_meteo_archive",
+      "status": "WORKING",
+      "checked_at": "2026-10-05T14:47:35.899597+00:00",
+      "detail": "HTTP 200; JSON object response received."
+    },
+    {
+      "id": "open_meteo_forecast",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "open_meteo_ensemble",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "imd_rainfall",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "era5_land",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "nasa_power",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "gpm_imerg",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "chirps_rainfall",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "noaa_ghcn",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "usgs_earthquakes",
+      "status": "WORKING",
+      "checked_at": "2026-10-05T14:47:39.311032+00:00",
+      "detail": "HTTP 200; JSON object response received."
+    },
+    {
+      "id": "india_wr_is",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "cwc_gauges",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "imd_aws",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "gsi_slope_sensors",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "openaq",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "local_iot_sensors",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "thingspeak_channels",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "sentinel_1",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "sentinel_2",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "landsat",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "srtm_dem",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "copernicus_dem",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "alos_palsar",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "soilgrids",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "esa_worldcover",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "modis_ndvi",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "firms_active_fires",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "smap_soil_moisture",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "gpm_precipitation",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "earthdata_landslide_products",
+      "status": "MANUAL",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "esa_worlddem",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "geonames",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "openstreetmap",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "bhuvan_lulc",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "world_bank_disaster",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "reliefweb_disasters",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "gdacs_events",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    },
+    {
+      "id": "copernicus_emergency",
+      "status": "NEEDS_REVIEW",
+      "checked_at": "2026-10-05T14:47:44.337827+00:00",
+      "detail": "Not probed: no approved no-login normalizer is implemented."
+    }
+  ]
+}
