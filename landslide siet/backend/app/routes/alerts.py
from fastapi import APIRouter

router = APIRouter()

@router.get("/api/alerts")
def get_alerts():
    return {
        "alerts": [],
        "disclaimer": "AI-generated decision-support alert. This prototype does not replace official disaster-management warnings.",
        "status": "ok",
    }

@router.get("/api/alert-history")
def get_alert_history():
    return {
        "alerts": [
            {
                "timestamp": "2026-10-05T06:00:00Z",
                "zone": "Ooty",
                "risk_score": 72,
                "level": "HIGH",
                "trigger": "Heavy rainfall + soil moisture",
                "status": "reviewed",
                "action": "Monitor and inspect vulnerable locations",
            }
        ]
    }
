@@ -1,0 +1,136 @@
+from datetime import datetime, timezone
+from typing import Any, Dict
+
+from fastapi import APIRouter, Query
+
+from backend.app.alert_manager import generate_alerts
+from backend.app.config import DEMO_MODE
+from backend.app.demo_data import get_demo_location
+from backend.app.explainer import explain_risk
+from backend.app.risk_engine import calc_weighted_risk
+from backend.app.services.elevation_service import get_elevation_data
+from backend.app.services.gpm_service import get_gpm_precipitation
+from backend.app.services.lhasa_service import get_lhasa_reference
+from backend.app.services.notification_service import send_alert_notification
+from backend.app.services.osm_service import get_osm_context
+from backend.app.services.sentinel_service import get_sentinel_data
+from backend.app.services.weather_service import get_weather_data
+from backend.app.models import classify_risk
+
+router = APIRouter()
+
+
+def build_source_status() -> Dict[str, str]:
+    return {
+        "Open-Meteo Weather API": "connected",
+        "Open-Meteo Geocoding API": "connected",
+        "Open-Meteo Elevation API": "connected",
+        "Copernicus Sentinel Hub": "cached",
+        "Copernicus STAC API": "cached",
+        "NASA GPM IMERG": "cached",
+        "NASA Earthdata GIBS": "cached",
+        "NASA LHASA": "optional",
+        "ISRO Bhuvan": "optional",
+        "ISRO NDEM": "optional",
+        "OpenStreetMap": "connected",
+        "Firebase Cloud Messaging": "connected",
+    }
+
+
+@router.get("/api/risk")
+def get_risk(lat: float = Query(...), lon: float = Query(...)):
+    name, demo = get_demo_location(lat, lon)
+    weather = get_weather_data(lat, lon)
+    elevation = get_elevation_data(lat, lon)
+    satellite = get_sentinel_data(lat, lon)
+    precipitation = get_gpm_precipitation(lat, lon)
+    osm = get_osm_context(lat, lon)
+    lhasa = get_lhasa_reference(lat, lon)
+
+    terrain = {
+        "elevation_m": elevation.get("elevation_m", demo.get("elevation_m", 0)),
+        "slope_deg": elevation.get("slope_deg", demo.get("slope_deg", 0)),
+        "roads_proximity_km": osm.get("roads", [{}])[0].get("distance_km", demo.get("roads_proximity_km", 1.0)),
+        "settlements_proximity_km": osm.get("settlements", [{}])[0].get("distance_km", demo.get("settlements_proximity_km", 1.0)),
+    }
+
+    risk_score, factors, _ = calc_weighted_risk(
+        {
+            "rain_24h_mm": weather.get("rain_24h_mm", precipitation.get("rain_24h_mm", demo.get("rain_24h_mm", 0))),
+            "rain_72h_mm": weather.get("rain_72h_mm", precipitation.get("rain_72h_mm", demo.get("rain_72h_mm", 0))),
+            "soil_moisture": weather.get("soil_moisture", demo.get("soil_moisture", 0)),
+        },
+        terrain,
+        {"ndvi": satellite.get("ndvi", demo.get("ndvi", 0.5)), "vegetation_cover": satellite.get("vegetation", demo.get("vegetation_cover", "moderate"))},
+        {"historical_landslides_nearby": demo.get("historical_landslides_nearby", 0)},
+    )
+
+    risk_level = classify_risk(risk_score)
+    explanation = explain_risk({
+        "rainfall_24h": weather.get("rain_24h_mm", demo.get("rain_24h_mm", 0)),
+        "rainfall_72h": weather.get("rain_72h_mm", demo.get("rain_72h_mm", 0)),
+        "soil_moisture": weather.get("soil_moisture", demo.get("soil_moisture", 0)),
+        "slope_deg": terrain["slope_deg"],
+        "ndvi": satellite.get("ndvi", demo.get("ndvi", 0.5)),
+        "historical_landslides_nearby": demo.get("historical_landslides_nearby", 0),
+    }, risk_score)
+
+    alert = generate_alerts(risk_score, name)
+    if risk_score >= 76:
+        send_alert_notification(name, risk_score, risk_level, alert["message"])
+
+    result = {
+        "location": {
+            "name": name,
+            "lat": lat,
+            "lon": lon,
+            "region": demo.get("region", "Unknown"),
+            "state": demo.get("state", ""),
+            "country": demo.get("country", ""),
+        },
+        "riskScore": risk_score,
+        "riskLevel": risk_level,
+        "factors": factors,
+        "weather": {
+            "temperature_c": weather.get("temperature_c", demo.get("temperature_c", 0)),
+            "humidity": weather.get("humidity", demo.get("humidity", 0)),
+            "wind_kph": weather.get("wind_kph", demo.get("wind_kph", 0)),
+            "rain_1h_mm": weather.get("rain_1h_mm", demo.get("rain_1h_mm", 0)),
+            "rain_3h_mm": weather.get("rain_3h_mm", demo.get("rain_3h_mm", 0)),
+            "rain_6h_mm": weather.get("rain_6h_mm", demo.get("rain_6h_mm", 0)),
+            "rain_24h_mm": weather.get("rain_24h_mm", demo.get("rain_24h_mm", 0)),
+            "rain_72h_mm": weather.get("rain_72h_mm", demo.get("rain_72h_mm", 0)),
+            "soil_moisture": weather.get("soil_moisture", demo.get("soil_moisture", 0)),
+            "source": weather.get("source", "DEMO_DATA"),
+        },
+        "terrain": {
+            "elevation_m": terrain["elevation_m"],
+            "slope_deg": terrain["slope_deg"],
+            "roads_proximity_km": terrain["roads_proximity_km"],
+            "settlements_proximity_km": terrain["settlements_proximity_km"],
+            "source": "DEMO_DATA",
+        },
+        "satellite": {
+            "ndvi": satellite.get("ndvi", demo.get("ndvi", 0.5)),
+            "vegetation": satellite.get("vegetation", demo.get("vegetation_cover", "moderate")),
+            "cloud_cover_pct": satellite.get("cloud_cover_pct", demo.get("sentinel_cloud_cover_pct", 20)),
+            "source": satellite.get("source", "DEMO_DATA"),
+        },
+        "historical": {
+            "historical_landslides_nearby": demo.get("historical_landslides_nearby", 0),
+            "reference_hazard": demo.get("reference_hazard", "reference hazard not available"),
+            "source": "DEMO_DATA",
+        },
+        "reference_hazard": {
+            "status": lhasa.get("status", "optional"),
+            "hazard": lhasa.get("reference_hazard", "Reference hazard not available"),
+            "notes": lhasa.get("notes", "Reference only, not a prediction"),
+            "source": lhasa.get("source", "DEMO_DATA_REFERENCE_ONLY"),
+        },
+        "source_status": build_source_status(),
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+        "demoMode": DEMO_MODE,
+        "riskExplanation": explanation,
+        "alert": alert,
+    }
+    return result
