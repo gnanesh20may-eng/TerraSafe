@@ -1,0 +1,17 @@
+{
+<<<<<<< HEAD
+  "name": "terrasafe",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@terrasafe/frontend",
+    "dev": "npm run dev --workspace=@terrasafe/frontend",
+    "start": "npm run start --workspace=@terrasafe/frontend",
+    "typecheck": "npm run typecheck --workspace=@terrasafe/frontend"
+  }
+=======
+  "type": "module"
+>>>>>>> 210abb5499f2f5b0b860c771e40ea0bbea6c4092
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "name": "terrasafe",
+  "services": {
+    "frontend": {
+      "root": "terrasafe",
+      "framework": "vite",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "devCommand": "npm run dev",
+      "public": true,
+      "outputDirectory": "dist"
+    },
+    "backend": {
+      "root": "backend",
+      "framework": "express",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "devCommand": "npm run server",
+      "public": false
+    },
+    "api": {
+      "root": "backend/app",
+      "framework": "fastapi",
+      "installCommand": "pip install -r requirements.txt",
+      "buildCommand": "pip install -r requirements.txt",
+      "devCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+      "public": false
+    }
+  },
+  "bindings": [
+    {
+      "type": "service",
+      "service": "api",
+      "format": "url",
+      "env": "API_URL"
+    },
+    {
+      "type": "service",
+      "service": "backend",
+      "format": "url",
+      "env": "BACKEND_URL"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend",
+        "internal": true
+      }
+    },
+    {
+      "source": "/health",
+      "destination": {
+        "service": "backend",
+        "internal": true
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend",
+        "regex": "^(?!/api).*/$"
+      }
+    }
+  ]
+}
