@@ -79,3 +79,30 @@
 - Final full backend suite: **38 passed in 7.45s**. Notebook JSON/cell syntax,
   Python compileall, and CRLF-aware whitespace checks passed.
 - Completion timestamp (`Get-Date`): 2026-10-05T20:38:07+05:30.
+
+## P4 — alerts API and RESCUE service scaffolds
+
+- Timestamp (`Get-Date`): 2026-10-05T20:47:37.6910807+05:30.
+- Added SQLAlchemy alert/audit/SOS persistence, Alembic migration, environment
+  based JWT role auth, strict alert lifecycle, de-duplication, score
+  hysteresis, request-triggered stale-alert escalation, WGS84 geofence
+  validation, hash-chain verification, CAP 1.2 `Test` output, and mock-only
+  web-push/SMS/WhatsApp/email/voice adapters.
+- Added `/sos`, protected SOS listing, mock `/sms/inbound` RISK query,
+  deterministic `/api/v1/simulate`, MISSING shelter/route output, model
+  metrics status, and `/rescue` SCAFFOLD. No phone is returned by SOS create;
+  no message is sent, no shelter or route is invented, and no emergency
+  dispatch is performed.
+- Added `docs/api.md`; updated README and feature inventory with observed
+  P4 labels and limitations.
+- Backend command: `.venv\Scripts\python.exe -m pytest backend/tests -q`
+- Backend result: **45 passed in 9.48s**.
+- Migration check: `alembic upgrade head` succeeded against the temporary
+  SQLite URL `sqlite:///./p4_migration_validation.db`; the temporary database
+  was removed after successful validation.
+- Frontend gate: `npm run build` was attempted and **did not run** because npm
+  reported `Missing script: "build"`; the repository still has no frontend
+  `package.json`. The P5 dashboard/build gate remains MISSING; no placeholder
+  build script was added.
+- Whitespace check: `git -c core.whitespace=cr-at-eol diff --check` passed.
+- Completion timestamp (`Get-Date`): 2026-10-05T20:50:57.6286001+05:30.

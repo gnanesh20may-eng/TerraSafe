@@ -9,4 +9,7 @@ ml/data/models/
 ml/data/metrics/
 ml/data/raw/
 ml/data/health/
+*.db
+*.sqlite3
+.env
 mlruns/

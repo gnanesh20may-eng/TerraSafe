@@ -3,9 +3,9 @@
 TerraSafe is a landslide early-warning and rescue-platform prototype for PSA
 04. **It is a decision-support tool, not a replacement for official IMD, NDMA,
 or GSI warnings.** The current checkout contains synthetic susceptibility and
-dynamic-risk/forecast helper code; it does not contain a FastAPI service or
-Next.js frontend. Check [`docs/status.md`](docs/status.md) for observed feature
-status and limitations.
+dynamic-risk/forecast helpers plus a P4 FastAPI service, but no Next.js
+frontend. Its alerts, SOS, and notification paths remain DEMO-only. Check
+[`docs/status.md`](docs/status.md) for observed feature status and limitations.
 
 ## P1: synthetic susceptibility baseline
 
@@ -50,9 +50,10 @@ provider feed or trained time-series model is implied.
 The source registry, health checker, and bounded Nilgiris downloader are
 described in [`docs/data_sources.md`](docs/data_sources.md). Health checks
 probe only Open-Meteo Archive and USGS; other source rows are MANUAL or
-NEEDS_REVIEW. The source API entry point is
-`python -m uvicorn backend.app.main:app --port 8000`; currently the only
-registered route is `GET /api/v1/health/data-sources`.
+NEEDS_REVIEW. Run the API with
+`python -m uvicorn backend.app.main:app --port 8000`. Route behavior,
+authentication, migration, and explicit demo limitations are documented in
+[`docs/api.md`](docs/api.md).
 
 ## P3: model inference scaffold
 

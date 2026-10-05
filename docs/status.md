@@ -11,7 +11,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | --- | --- | --- |
 | Susceptibility training pipeline | SIMULATED | P1 deterministic synthetic Nilgiris data and spatial cross-validation; metrics are not real-world performance. |
 | Ingestion fixtures | SIMULATED | P2 provider adapters supply clearly marked local mock fixtures. |
-| Open-Meteo and USGS ingestion | SCAFFOLD | Opt-in HTTP adapters exist; no live provider request was made in this audit. |
+| Open-Meteo and USGS ingestion | SCAFFOLD | Opt-in HTTP adapters exist; endpoint probes returned HTTP 200 JSON for Nilgiris, but no weather or earthquake dataset was downloaded. |
 | Other NASA/IMD product ingestion | SCAFFOLD | Requires configured product-specific endpoints and normalization; no product data was downloaded. |
 | Dynamic risk and forecast helpers | DEMO | P2 rainfall, slope, trigger, and horizon calculations are experimental, not calibrated warnings or trained time-series forecasts. |
 | Model inference fallback | SIMULATED | Inference fits Logistic Regression on synthetic data when no trusted local artifact exists; output is not an operational prediction. |
@@ -20,11 +20,21 @@ that a live provider, device, or public-safety workflow has been validated.
 | Data source health API | LIVE | `GET /api/v1/health/data-sources` returns registry status; only Open-Meteo Archive and USGS were probed live. |
 | Data registry and downloader | SCAFFOLD | 47 candidate sources catalogued; live downloading is implemented only for Open-Meteo Archive and USGS in Nilgiris. No dataset was downloaded as part of this phase. |
 | Data-quality report helpers | LIVE | Tested null, duplicate, label-balance, CRS declaration, coordinate range, and spatial-fold leakage reports; no external dataset was validated. |
-| Other API services and routes | MISSING | `/health`, risk scoring, SOS persistence, alert lifecycle, and rescue endpoints are not present in this checkout. |
+| FastAPI service and health | LIVE | `/health` checks the configured database; data-source health is exposed at `/api/v1/health/data-sources`. Local API tests pass; this is not a hosted service. |
+| Risk query | SIMULATED | Nilgiris uses synthetic pilot inputs; other locations return MISSING. This is not a warning. |
+| Alert persistence and lifecycle | DEMO | SQLAlchemy persistence, role-checked lifecycle, deduplication, hysteresis, request-triggered escalation, and hash-chain audit are implemented and tested. Data and policy are not operationally validated. |
+| JWT role authorization | LIVE | Short-lived HS256 tokens use `JWT_SECRET` from the environment; protected writes and SOS reads are tested. No production identity provider is configured. |
+| Notification channels | DEMO | Web push, SMS, WhatsApp, email, and voice return mock results only; no provider adapter sends messages. |
+| CAP export | DEMO | XML output is marked `Test`, uses unknown severity/urgency/certainty, and labels its generated 1 km circle SIMULATED. Do not redistribute as an official alert. |
+| SOS intake | DEMO | `/sos` stores a request and omits phone from its create response; it does not dispatch emergency services. Listing is role-protected. |
+| SMS inbound RISK query | DEMO | `/sms/inbound` performs a local alert lookup only; it does not connect to an SMS provider. |
+| Evacuation destination and routing | MISSING | No verified shelter dataset or validated route service is configured; no locations or directions are fabricated. |
+| Scenario simulation | SIMULATED | `/api/v1/simulate` returns a transparent, uncalibrated what-if index. |
+| Model metrics API | MISSING | No generated evaluation file exists in this checkout. |
+| Rescue endpoint | SCAFFOLD | `/rescue` is a placeholder and is not a dispatch or rescue coordination service. |
 | Next.js dashboard and rescue page | MISSING | No frontend directory or npm build script is present. |
-| Alert persistence, lifecycle, and delivery | MISSING | No API alert service or database implementation is present. |
 | IoT firmware and sensor simulator | MISSING | No firmware or simulator source is present in tracked files. |
-| Automated backend checks | LIVE | Latest full local run completed with 38 passed. This is code-test evidence, not field validation. |
+| Automated backend checks | LIVE | Latest full local run completed with 45 passed. This is code-test evidence, not field validation. |
 
 ## Phase tracker
 
@@ -34,7 +44,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | P1 Repository and onboarding | LIVE | Added contribution guidance, PR template, CODEOWNERS, cross-platform setup, onboarding, CRLF-aware attributes, and CI. Frontend build is conditional because this checkout has no frontend package. |
 | P2 Data registry and download tooling | LIVE | 47 candidate entries, 10 approximate region boxes, bounded downloader, source checks, quality helpers, and source-health endpoint added. Only two Nilgiris public endpoints are probed; GSI and access-controlled sources remain MANUAL/NEEDS_REVIEW. |
 | P3 ML notebooks and inference | SIMULATED | Four NOT RUN notebook scaffolds, NumPy Logistic fallback for blocked sklearn linear DLL, hybrid inference, uncertainty placeholders, adaptive-zone demo thresholds, and model checksum tooling added. No real evaluation, trained forecast model, or trusted export is available. |
-| P4 Alerts and API | MISSING | No backend API, persistence, alert lifecycle, auth, or delivery service is present. |
+| P4 Alerts and API | DEMO | FastAPI routes, SQLite/PostgreSQL persistence models, Alembic migration, JWT roles, lifecycle, dedupe/hysteresis, request-triggered escalation, mock channel adapters, CAP export, SOS intake, SMS query, simulation, and audit verification are implemented. 45 backend tests pass. No notification sends, real warning, shelter data, or dispatch is claimed. |
 | P5 Dashboard | MISSING | No frontend is present. |
 | P6 Offline and IoT | MISSING | No PWA, local queue, device firmware, or sensor simulator is present. |
 | P7 Rescue | MISSING | No rescue service or rescue UI is present in tracked sources. |
@@ -44,7 +54,7 @@ that a live provider, device, or public-safety workflow has been validated.
 
 - Repository: `main`, clean before this audit; latest commits are P1
   (`5d21328`) and P2 (`c8ff8d9`).
-- Backend tests: `19 passed in 5.53s`.
+- Backend tests: `19 passed in 5.53s` at the P0 audit.
 - Frontend build: attempted with `npm run build`; npm returned
   `Missing script: "build"`.
 - Route inventory: no FastAPI application or route decorators found.
