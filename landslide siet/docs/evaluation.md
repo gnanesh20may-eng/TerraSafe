@@ -14,6 +14,15 @@ Regression classifier. Evaluation used five-fold `GroupKFold` with
 classification threshold was 0.5. Metrics below were computed with
 scikit-learn from the pooled out-of-fold predictions.
 
+## Negative-label strategy
+
+This run has no observed negative inventory. The synthetic generator samples
+both labels from its invented per-cell risk probabilities; rows with label 0
+are synthetic negatives, not verified landslide-free locations. A real-data
+pipeline must define non-event sampling by a documented inventory observation
+window, remove event buffers and uncertain/unobserved areas, and report class
+balance per spatial fold before evaluating.
+
 | Metric | Result |
 | --- | ---: |
 | Accuracy | 0.5990 |

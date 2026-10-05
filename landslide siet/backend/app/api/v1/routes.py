@@ -7,6 +7,7 @@ from backend.app.alert_engine import alert_engine
 from backend.app.gis.risk_zones import build_risk_zone_geojson
 from backend.app.providers.base import LocationRef
 from backend.app.services.environment_service import environment_service
+from backend.app.services.data_health import check_all_sources
 from backend.app.services.risk_service import risk_service
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
@@ -270,3 +271,8 @@ def get_data_sources():
         "terrain_source": "DEMO TERRAIN PROVIDER",
         "last_update": "2026-10-05T12:00:00Z",
     }
+
+
+@router.get("/health/data-sources")
+def get_data_source_health():
+    return check_all_sources()

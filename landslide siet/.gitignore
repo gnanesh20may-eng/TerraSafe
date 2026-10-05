@@ -27,3 +27,6 @@ build/
 # ML outputs
 ml/data/generated/*.json
 ml/data/generated/*.geojson
+/data/raw/
+/logs/
+/backend/models/

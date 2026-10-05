@@ -9,6 +9,7 @@
 ## Core endpoints
 
 - `GET /api/v1/health`
+- `GET /api/v1/health/data-sources`
 - `POST /api/v1/auth/login`
 - `GET /api/v1/locations/search`
 - `GET /api/v1/locations/{id}`

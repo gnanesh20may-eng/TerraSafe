@@ -21,7 +21,9 @@ validated.
 | Authentication and authorization | SCAFFOLD | Bootstrap helper exists; protected role-based routes are not implemented or tested |
 | Rescue mesh and family relay visualization | SIMULATED | `/rescue` is an illustrative UI only; no Bluetooth, radio, or device relay is implemented |
 | Persistent SOS/alert database and audit log | MISSING | No SQLAlchemy/Alembic persistence or hash-chained log |
-| Data source registry and live health monitor | MISSING | `/api/v1/data-sources` is static demo metadata; no source registry/latency monitor |
+| Data source registry | DEMO / NEEDS_REVIEW | `data_sources/registry.yaml` contains 44 records; only Open-Meteo and USGS are implemented as open live adapters; NASA GLC is needs-review after the current data page returned 404 |
+| Source health monitor | LIVE for three open APIs; others are MANUAL/NEEDS_REVIEW | `scripts/check_sources.py` writes `docs/data_health.md`; `GET /api/v1/health/data-sources` reports latency, record count, newest timestamp, status, and errors |
+| Historical Open-Meteo and USGS download | LIVE | `scripts/download_all.py` ran both Nilgiris downloads and wrote checksum sidecars under ignored `data/raw/` |
 | Offline PWA, background queue, and offline maps | MISSING | No service worker or IndexedDB queue |
 | SMS, WhatsApp, email, voice, push delivery | MISSING | No adapters or credentials; no external messages are sent |
 | Frontend dependency security remediation | MISSING | `npm audit` reports 8 advisories (6 high, 2 critical); available automated fixes require major Next/Tailwind/MapLibre upgrades and were not applied |
