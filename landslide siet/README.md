@@ -103,6 +103,16 @@ This project intentionally uses clearly marked demo/synthetic data and monitorin
 
 See [docs/evaluation.md](docs/evaluation.md) for the measured synthetic-data metrics and their limits.
 
+## Contributing
+
+Create focused branches using `backend/`, `frontend/`, `ml/`, or `data/`
+prefixes, for example `backend/sos-storage` or `data/open-meteo-history`.
+Keep credentials in an untracked `.env`; never commit real API keys, downloaded
+datasets, or model artifacts. Add or update tests for behavior changes and run
+`python -m pytest backend/tests -q` and `npm run build` before opening a PR.
+Use the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) and follow
+[docs/onboarding.md](docs/onboarding.md) for the local setup.
+
 ## Phase 1 outcomes
 
 Completed in this stage:

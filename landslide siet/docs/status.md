@@ -24,6 +24,7 @@ validated.
 | Data source registry and live health monitor | MISSING | `/api/v1/data-sources` is static demo metadata; no source registry/latency monitor |
 | Offline PWA, background queue, and offline maps | MISSING | No service worker or IndexedDB queue |
 | SMS, WhatsApp, email, voice, push delivery | MISSING | No adapters or credentials; no external messages are sent |
+| Frontend dependency security remediation | MISSING | `npm audit` reports 8 advisories (6 high, 2 critical); available automated fixes require major Next/Tailwind/MapLibre upgrades and were not applied |
 | Hardware sensor firmware/simulator | MISSING | No runnable sensor client or tested firmware in this phase |
 
 ## Effective API routes
