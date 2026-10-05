@@ -9,7 +9,15 @@ from backend.app.routes.bhuvan import router as bhuvan_router
 from backend.app.routes.ndem import router as ndem_router
 from backend.app.routes.osm import router as osm_router
 from backend.app.routes.risk import router as risk_router
-from backend.app.routes.alerts import router as alerts_router
+from backend.app.routes.zones import router as zones_router
+from backend.app.routes.simulation import router as simulation_router
+from backend.app.routes.copilot import router as copilot_router
+from backend.app.routes.trends import router as trends_router
+from backend.app.routes.vulnerable import router as vulnerable_router
+from backend.app.routes.priority import router as priority_router
+from backend.app.routes.response_plan import router as response_plan_router
+from backend.app.routes.analysis import router as analysis_router
+from backend.app.routes.health import router as health_router
 from backend.app.config import APP_NAME
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +43,15 @@ app.include_router(bhuvan_router)
 app.include_router(ndem_router)
 app.include_router(osm_router)
 app.include_router(risk_router)
-app.include_router(alerts_router)
+app.include_router(zones_router)
+app.include_router(simulation_router)
+app.include_router(copilot_router)
+app.include_router(trends_router)
+app.include_router(vulnerable_router)
+app.include_router(priority_router)
+app.include_router(response_plan_router)
+app.include_router(analysis_router)
+app.include_router(health_router)
 
 @app.get("/")
 def home():
