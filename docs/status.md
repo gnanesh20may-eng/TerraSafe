@@ -32,7 +32,8 @@ that a live provider, device, or public-safety workflow has been validated.
 | Scenario simulation | SIMULATED | `/api/v1/simulate` returns a transparent, uncalibrated what-if index. |
 | Model metrics API | MISSING | No generated evaluation file exists in this checkout. |
 | Rescue endpoint | SCAFFOLD | `/rescue` is a placeholder and is not a dispatch or rescue coordination service. |
-| Next.js dashboard and rescue page | MISSING | No frontend directory or npm build script is present. |
+| Next.js dashboard | DEMO | App Router dashboard at `http://localhost:3001` shows live API/database status when reachable, actual alert records, and explicit capability labels. No map, offline mode, alert creation, or real rescue workflow is provided. |
+| Next.js rescue page | MISSING | No separate rescue page or dispatch workflow exists; the dashboard marks RESCUE coordination SCAFFOLD. |
 | IoT firmware and sensor simulator | MISSING | No firmware or simulator source is present in tracked files. |
 | Automated backend checks | LIVE | Latest full local run completed with 45 passed. This is code-test evidence, not field validation. |
 
@@ -45,7 +46,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | P2 Data registry and download tooling | LIVE | 47 candidate entries, 10 approximate region boxes, bounded downloader, source checks, quality helpers, and source-health endpoint added. Only two Nilgiris public endpoints are probed; GSI and access-controlled sources remain MANUAL/NEEDS_REVIEW. |
 | P3 ML notebooks and inference | SIMULATED | Four NOT RUN notebook scaffolds, NumPy Logistic fallback for blocked sklearn linear DLL, hybrid inference, uncertainty placeholders, adaptive-zone demo thresholds, and model checksum tooling added. No real evaluation, trained forecast model, or trusted export is available. |
 | P4 Alerts and API | DEMO | FastAPI routes, SQLite/PostgreSQL persistence models, Alembic migration, JWT roles, lifecycle, dedupe/hysteresis, request-triggered escalation, mock channel adapters, CAP export, SOS intake, SMS query, simulation, and audit verification are implemented. 45 backend tests pass. No notification sends, real warning, shelter data, or dispatch is claimed. |
-| P5 Dashboard | MISSING | No frontend is present. |
+| P5 Dashboard | DEMO | Next.js dashboard added with honest status cards, API health/alert reads, explicit backend errors, responsive layout, and no fabricated incidents. `npm run build` and `npm run typecheck` pass; a separate rescue page, field workflows, and map are not implemented. |
 | P6 Offline and IoT | MISSING | No PWA, local queue, device firmware, or sensor simulator is present. |
 | P7 Rescue | MISSING | No rescue service or rescue UI is present in tracked sources. |
 | P8 Documentation and release gate | SCAFFOLD | P1/P2 model and dynamic-risk notes exist; requested architecture, API, offline, privacy, rescue, evaluation, pitch, demo, and final gate remain outstanding. |

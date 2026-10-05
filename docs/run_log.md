@@ -106,3 +106,28 @@
   build script was added.
 - Whitespace check: `git -c core.whitespace=cr-at-eol diff --check` passed.
 - Completion timestamp (`Get-Date`): 2026-10-05T20:50:57.6286001+05:30.
+
+## P5 — Next.js status dashboard
+
+- Timestamp (`Get-Date`): 2026-10-05T21:02:22.0430197+05:30.
+- Added a locked npm workspace with a Next.js App Router dashboard at port
+  3001. It reads the actual API health/database result and alert list, surfaces
+  API errors, displays no seeded/sample incidents, and marks prototype
+  capabilities DEMO, SIMULATED, SCAFFOLD, or MISSING.
+- Added an exact local CORS allowlist for the dashboard origins; credentials
+  are disabled. No external font/data sources are requested by the UI.
+- Dependency install: `npm install` added 30 packages; npm reported **0
+  vulnerabilities**.
+- Production build: `npm run build` passed on Next.js 16.3.8; `/` and
+  `/_not-found` were statically prerendered.
+- Frontend type check: `npm run typecheck` passed.
+- Backend tests after CORS wiring: `45 passed in 11.52s`.
+- Browser verification at `http://localhost:3001`: actual local API returned
+  `API LIVE · database LIVE`; alert endpoint returned zero records, and the UI
+  displayed its no-records state without fabricated incidents.
+- The verification-created empty `terrasafe.db` was removed. Both local
+  servers were stopped; no database, generated records, or model artifacts
+  were committed.
+- `/rescue` remains SCAFFOLD and a separate rescue page remains MISSING.
+- Whitespace check: `git -c core.whitespace=cr-at-eol diff --check` passed.
+- Completion timestamp (`Get-Date`): 2026-10-05T21:02:22.0430197+05:30.

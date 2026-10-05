@@ -1,0 +1,13 @@
+{
+  "name": "terrasafe",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@terrasafe/frontend",
+    "dev": "npm run dev --workspace=@terrasafe/frontend",
+    "start": "npm run start --workspace=@terrasafe/frontend",
+    "typecheck": "npm run typecheck --workspace=@terrasafe/frontend"
+  }
+}

@@ -74,6 +74,16 @@ def test_health_and_public_alert_reads(api_client):
     health = api_client("GET", "/health")
     assert health.status_code == 200
     assert health.json()["status"] == "LIVE"
+    preflight = api_client(
+        "OPTIONS",
+        "/health",
+        headers={
+            "Origin": "http://localhost:3001",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert preflight.status_code == 200
+    assert preflight.headers["access-control-allow-origin"] == "http://localhost:3001"
 
     created = create_alert(api_client)
     assert created.status_code == 201

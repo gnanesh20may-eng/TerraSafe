@@ -3,8 +3,8 @@
 TerraSafe is a landslide early-warning and rescue-platform prototype for PSA
 04. **It is a decision-support tool, not a replacement for official IMD, NDMA,
 or GSI warnings.** The current checkout contains synthetic susceptibility and
-dynamic-risk/forecast helpers plus a P4 FastAPI service, but no Next.js
-frontend. Its alerts, SOS, and notification paths remain DEMO-only. Check
+dynamic-risk/forecast helpers, a P4 FastAPI service, and a P5 Next.js
+dashboard. Its alerts, SOS, and notification paths remain DEMO-only. Check
 [`docs/status.md`](docs/status.md) for observed feature status and limitations.
 
 ## P1: synthetic susceptibility baseline
@@ -55,6 +55,21 @@ NEEDS_REVIEW. Run the API with
 authentication, migration, and explicit demo limitations are documented in
 [`docs/api.md`](docs/api.md).
 
+## P5: local dashboard
+
+Install the locked frontend dependencies and run the Next.js dashboard on
+port 3001:
+
+```powershell
+npm install
+npm run dev
+```
+
+The dashboard reads the configured API health and public prototype alert list.
+It contains no fabricated incidents and has no alert-write or rescue-dispatch
+controls. See [`docs/frontend.md`](docs/frontend.md) for CORS and validation
+details.
+
 ## P3: model inference scaffold
 
 `backend.app.ml.inference.infer_risk()` provides a labeled synthetic Logistic
@@ -69,5 +84,5 @@ notebooks under `notebooks/` are SCAFFOLD and NOT RUN. See
 See [`docs/onboarding.md`](docs/onboarding.md) for setup and contribution
 guidance. Pull requests must include focused tests and update feature labels in
 `docs/status.md`. Use `git -c core.whitespace=cr-at-eol diff --check` before
-committing. The CI workflow runs the backend tests; it runs a frontend build
-only when a frontend package manifest is present.
+committing. The CI workflow runs the backend tests and the `npm run build`
+frontend gate.

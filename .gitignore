@@ -13,3 +13,6 @@ ml/data/health/
 *.sqlite3
 .env
 mlruns/
+node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
