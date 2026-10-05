@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+}
+
+.shelter-marker {
+  width: 26px;
+  height: 30px;
+  border: 0;
+  background: #075985;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+  cursor: pointer;
+}
+
+.shelter-marker.is-hidden {
+  display: none;
+}
