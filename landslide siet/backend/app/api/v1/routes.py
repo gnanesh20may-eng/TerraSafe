@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
 from backend.app.alert_engine import alert_engine
 from backend.app.gis.risk_zones import build_risk_zone_geojson
-from backend.app.providers.base import LocationRef
+from backend.app.providers.base import LocationRef, ProviderUnavailableError
 from backend.app.services.environment_service import environment_service
 from backend.app.services.risk_service import risk_service
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
+DATA_HEALTH_PATH = Path(__file__).resolve().parents[4] / "data_sources" / "health.json"
 
 
 class LocationSummary(BaseModel):
@@ -152,7 +156,10 @@ def get_environment(location_id: str):
         longitude=float(location["longitude"]),
         admin_region=location["admin_region"],
     )
-    return environment_service.get_environment(location_ref)
+    try:
+        return environment_service.get_environment(location_ref)
+    except ProviderUnavailableError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
 
 @router.get("/terrain/{location_id}")
@@ -167,7 +174,10 @@ def get_terrain(location_id: str):
         longitude=float(location["longitude"]),
         admin_region=location["admin_region"],
     )
-    snapshot = environment_service.get_environment(location_ref)
+    try:
+        snapshot = environment_service.get_environment(location_ref)
+    except ProviderUnavailableError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     return {"location": location["name"], "terrain": snapshot["terrain"], "source": snapshot["terrain"]["source"]}
 
 
@@ -233,3 +243,18 @@ def get_data_sources():
         "terrain_source": "DEMO TERRAIN PROVIDER",
         "last_update": "2026-10-05T12:00:00Z",
     }
+
+
+@router.get("/health/data-sources")
+def health_data_sources():
+    if not DATA_HEALTH_PATH.exists():
+        return {
+            "status": "NEEDS_REVIEW",
+            "updated_at": None,
+            "sources": [],
+            "message": "Run scripts/check_sources.py to generate a source-health snapshot.",
+        }
+    try:
+        return json.loads(DATA_HEALTH_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=503, detail="Data-source health snapshot is unreadable") from error

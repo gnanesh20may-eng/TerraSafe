@@ -30,6 +30,12 @@ Current provider slice:
 - Terrain and satellite responses remain demo data until real DEM and Earth-observation processors are configured.
 - Mixed-source status is explicit; upstream weather failures return HTTP 503 without silently substituting demo measurements.
 
+Data pipeline:
+- `data_sources/registry.yaml` tracks source access, licence, coverage, fallback, and verification status. Ten approximate region bounds are query windows, not legal boundaries.
+- Preview the approved Nilgiris requests with `scripts/download_all.py --source open_meteo_nilgiris_history --source usgs_earthquake_catalog --region nilgiris --dry-run`; remove `--dry-run` to fetch. Raw data, mocks, and logs are git-ignored.
+- Run `scripts/check_sources.py --region nilgiris` to write the source health report and API snapshot. Run `scripts/validate_download.py <file>` to check supported JSON/GeoJSON structure.
+- Only Open-Meteo historical reanalysis and USGS FDSN were queried. See [data_health.md](docs/data_health.md); NASA/GSI inventory and other sources remain manual or under review.
+
 ## Repository layout
 
 ```text
@@ -44,6 +50,9 @@ landslide siet/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
+├── data_sources/
+│   └── registry.yaml
+├── scripts/
 ├── docs/
 │   ├── architecture.md
 │   ├── api.md

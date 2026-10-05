@@ -28,3 +28,9 @@ build/
 # ML outputs
 ml/data/generated/*.json
 ml/data/generated/*.geojson
+
+# Downloaded and generated data are not source code
+data_sources/raw/
+data_sources/processed/
+data_sources/mock/
+logs/

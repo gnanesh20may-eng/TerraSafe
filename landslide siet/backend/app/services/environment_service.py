@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
+from backend.app.config import DEMO_MODE
 from backend.app.providers.base import LocationRef
 from backend.app.providers.satellite import DemoSatelliteProvider
 from backend.app.providers.terrain import DemoTerrainProvider
-from backend.app.providers.weather import DemoWeatherProvider
+from backend.app.providers.weather import DemoWeatherProvider, OpenMeteoWeatherProvider
 
 
 class EnvironmentService:
@@ -13,7 +16,9 @@ class EnvironmentService:
         terrain_provider=None,
         satellite_provider=None,
     ) -> None:
-        self.weather_provider = weather_provider or DemoWeatherProvider()
+        self.weather_provider = weather_provider or (
+            DemoWeatherProvider() if DEMO_MODE else OpenMeteoWeatherProvider()
+        )
         self.terrain_provider = terrain_provider or DemoTerrainProvider()
         self.satellite_provider = satellite_provider or DemoSatelliteProvider()
 
@@ -21,6 +26,15 @@ class EnvironmentService:
         weather = self.weather_provider.get_current_weather(location)
         terrain = self.terrain_provider.get_terrain_features(location)
         satellite = self.satellite_provider.get_satellite_observation(location)
+
+        source_names = [weather.source, terrain.source, satellite.source]
+        demo_sources = [source for source in source_names if source.upper().startswith("DEMO")]
+        if len(demo_sources) == len(source_names):
+            data_status = "DEMO DATA"
+        elif demo_sources:
+            data_status = "MIXED LIVE/DEMO DATA"
+        else:
+            data_status = "LIVE DATA"
 
         return {
             "location": {
@@ -37,6 +51,7 @@ class EnvironmentService:
                 "wind_speed_kmh": weather.wind_speed_kmh,
                 "temperature_c": weather.temperature_c,
                 "source": weather.source,
+                "observed_at": weather.observed_at,
             },
             "terrain": {
                 "elevation_m": terrain.elevation_m,
@@ -53,8 +68,8 @@ class EnvironmentService:
                 "land_cover": satellite.land_cover,
                 "source": satellite.source,
             },
-            "last_updated": "2026-10-05T12:00:00Z",
-            "data_status": "DEMO DATA",
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "data_status": data_status,
         }
 
 

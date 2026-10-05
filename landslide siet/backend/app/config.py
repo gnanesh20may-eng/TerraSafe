@@ -17,6 +17,7 @@ APP_ENV = os.getenv("APP_ENV", "development")
 DEMO_MODE = get_bool("DEMO_MODE", True)
 
 OPENMETEO_BASE_URL = os.getenv("OPENMETEO_BASE_URL", "https://api.open-meteo.com/v1")
+OPENMETEO_TIMEOUT_SECONDS = float(os.getenv("OPENMETEO_TIMEOUT_SECONDS", "5"))
 COPERNICUS_CLIENT_ID = os.getenv("COPERNICUS_CLIENT_ID", "")
 COPERNICUS_CLIENT_SECRET = os.getenv("COPERNICUS_CLIENT_SECRET", "")
 NASA_EARTHDATA_TOKEN = os.getenv("NASA_EARTHDATA_TOKEN", "")

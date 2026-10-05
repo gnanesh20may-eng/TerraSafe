@@ -1,0 +1,531 @@
+version: 1
+regions:
+  nilgiris: {name: Nilgiris, bbox: [76.35, 10.85, 77.15, 11.65], point: [76.8, 11.35], note: approximate search window, not an administrative boundary}
+  kerala_western_ghats: {name: Kerala Western Ghats, bbox: [74.8, 8.2, 77.5, 12.8], point: [76.0, 10.5], note: approximate search window}
+  kodagu: {name: Kodagu, bbox: [75.2, 12.1, 76.2, 12.8], point: [75.74, 12.42], note: approximate search window}
+  maharashtra_western_ghats: {name: Maharashtra Western Ghats, bbox: [72.4, 15.5, 74.5, 20.0], point: [73.5, 17.7], note: approximate search window}
+  uttarakhand: {name: Uttarakhand, bbox: [77.5, 28.4, 81.1, 31.5], point: [79.1, 30.1], note: approximate search window}
+  himachal: {name: Himachal Pradesh, bbox: [75.5, 30.3, 79.0, 33.3], point: [77.2, 31.8], note: approximate search window}
+  sikkim_darjeeling: {name: Sikkim and Darjeeling, bbox: [87.8, 26.8, 89.9, 28.2], point: [88.5, 27.4], note: approximate search window}
+  arunachal: {name: Arunachal Pradesh, bbox: [91.5, 26.5, 97.5, 29.5], point: [94.8, 28.0], note: approximate search window}
+  northeast_hills: {name: Mizoram, Meghalaya and Nagaland, bbox: [89.7, 21.9, 95.8, 27.1], point: [93.0, 25.0], note: broad search window spanning multiple states}
+  jammu_kashmir_ladakh: {name: Jammu and Kashmir and Ladakh, bbox: [73.5, 32.1, 80.5, 37.1], point: [77.5, 34.5], note: broad search window spanning multiple union territories}
+sources:
+  - id: open_meteo_nilgiris_history
+    name: Open-Meteo Historical Weather (ERA5-Land reanalysis)
+    category: meteorology
+    url: https://archive-api.open-meteo.com/v1/archive
+    access: open
+    format: JSON
+    update_frequency: daily with source-dependent reanalysis delay
+    license: Free API terms state non-commercial use and attribution; review terms before redistribution
+    region_coverage: global, point query
+    fallback: SIMULATED fixture only; never label as observed weather
+    target_path: data_sources/raw/{region}/open_meteo_history.json
+    status: verified
+    adapter: open_meteo_archive
+  - id: usgs_earthquake_catalog
+    name: USGS FDSN Earthquake Catalog
+    category: sensor_context
+    url: https://earthquake.usgs.gov/fdsnws/event/1/query
+    access: open
+    format: GeoJSON
+    update_frequency: continuous catalog; query on demand
+    license: U.S. government public data; cite USGS and check individual product terms
+    region_coverage: global, bounded rectangle query
+    fallback: empty result is valid; never synthesize events as real
+    target_path: data_sources/raw/{region}/usgs_earthquakes.geojson
+    status: verified
+    adapter: usgs_fdsn
+  - id: nasa_global_landslide_catalog
+    name: NASA Global Landslide Catalog
+    category: ground_landslide
+    url: https://data.nasa.gov/dataset/global-landslide-catalog-export
+    access: manual
+    format: CSV or GeoJSON (confirm with source owner)
+    update_frequency: archive; current cadence to verify
+    license: needs_review; check dataset-specific terms and attribution
+    region_coverage: global, coverage and export method to verify
+    fallback: synthetic inventory explicitly labeled only
+    target_path: data_sources/raw/{region}/nasa_global_landslide_catalog.csv
+    status: needs_review
+  - id: gsi_bhukosh_landslide_inventory
+    name: GSI Bhukosh landslide inventory
+    category: ground_landslide
+    url: https://bhukosh.gsi.gov.in/
+    access: manual
+    format: GIS download format to confirm
+    update_frequency: needs_review
+    license: needs_review; request reuse permission and attribution requirements
+    region_coverage: India; Nilgiris coverage to confirm
+    fallback: none
+    target_path: data_sources/raw/{region}/gsi_bhukosh/
+    status: manual
+  - id: nlsm_landslide_susceptibility
+    name: National Landslide Susceptibility Mapping
+    category: ground_landslide
+    url: https://www.gsi.gov.in/
+    access: manual
+    format: GIS format to confirm
+    update_frequency: needs_review
+    license: needs_review
+    region_coverage: India; Nilgiris coverage to confirm
+    fallback: DEMO only
+    target_path: data_sources/raw/{region}/nlsm/
+    status: needs_review
+  - id: bhuvan_landslide_atlas
+    name: Bhuvan/NRSC landslide atlas
+    category: ground_landslide
+    url: https://bhuvan.nrsc.gov.in/
+    access: manual
+    format: GIS service/download to confirm
+    update_frequency: needs_review
+    license: needs_review
+    region_coverage: India; layer coverage to confirm
+    fallback: none
+    target_path: data_sources/raw/{region}/bhuvan_landslide_atlas/
+    status: needs_review
+  - id: copernicus_dem
+    name: Copernicus DEM
+    category: terrain
+    url: https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model
+    access: login
+    format: GeoTIFF
+    update_frequency: static releases
+    license: Copernicus terms; verify redistribution conditions
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/copernicus_dem/
+    status: needs_review
+  - id: soilgrids
+    name: ISRIC SoilGrids
+    category: soil
+    url: https://soilgrids.org/
+    access: open
+    format: OGC/API or raster; endpoint to verify
+    update_frequency: irregular releases
+    license: CC BY 4.0 (confirm product-level metadata)
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/soilgrids/
+    status: needs_review
+  - id: esa_worldcover
+    name: ESA WorldCover
+    category: land_cover
+    url: https://esa-worldcover.org/
+    access: open
+    format: GeoTIFF
+    update_frequency: mission releases
+    license: product licence to verify
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/esa_worldcover/
+    status: needs_review
+  - id: openstreetmap
+    name: OpenStreetMap roads and streams
+    category: infrastructure
+    url: https://www.openstreetmap.org/
+    access: open
+    format: Overpass/planet extracts; endpoint to verify
+    update_frequency: continuous edits
+    license: ODbL 1.0 with attribution/share-alike obligations
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/openstreetmap/
+    status: needs_review
+  - id: overture_maps
+    name: Overture Maps
+    category: infrastructure
+    url: https://docs.overturemaps.org/
+    access: open
+    format: GeoParquet
+    update_frequency: release cadence to verify
+    license: product terms to verify
+    region_coverage: global
+    fallback: OpenStreetMap (separate licence)
+    target_path: data_sources/raw/{region}/overture/
+    status: needs_review
+  - id: state_sdma_data
+    name: State SDMA incident and shelter data
+    category: ground_landslide
+    url: https://tnsdma.tn.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: authority supplied
+    license: permission required
+    region_coverage: Tamil Nadu; dataset availability to confirm
+    fallback: no real-world substitute
+    target_path: data_sources/raw/{region}/state_sdma/
+    status: manual
+  - id: esp32_field_sensors
+    name: TerraSafe ESP32 field sensors
+    category: sensors
+    url: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/
+    access: manual
+    format: MQTT JSON (planned)
+    update_frequency: device configured
+    license: project firmware; sensor calibration required
+    region_coverage: installed pilot sites only
+    fallback: simulator labelled SIMULATED
+    target_path: data_sources/raw/{region}/iot/
+    status: scaffold
+  - id: sensor_simulator
+    name: Local sensor simulator
+    category: sensors
+    url: null
+    access: open
+    format: JSON
+    update_frequency: user-run
+    license: project-generated synthetic data
+    region_coverage: configured simulation
+    fallback: none
+    target_path: data_sources/mock/{region}/sensor_simulator.json
+    status: simulated
+  - id: imd_aws_arg
+    name: IMD AWS/ARG observations
+    category: sensors
+    url: https://mausam.imd.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: station dependent
+    license: needs_review
+    region_coverage: India; Nilgiris station availability to confirm
+    fallback: Open-Meteo reanalysis (not a gauge substitute)
+    target_path: data_sources/raw/{region}/imd_stations/
+    status: needs_review
+  - id: cwc_gauges
+    name: Central Water Commission gauges
+    category: sensors
+    url: https://cwc.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: station dependent
+    license: needs_review
+    region_coverage: India; local station availability to confirm
+    fallback: none
+    target_path: data_sources/raw/{region}/cwc/
+    status: needs_review
+  - id: india_wris
+    name: India-WRIS
+    category: sensors
+    url: https://indiawris.gov.in/
+    access: login
+    format: needs_review
+    update_frequency: needs_review
+    license: needs_review
+    region_coverage: India
+    fallback: none
+    target_path: data_sources/raw/{region}/india_wris/
+    status: needs_review
+  - id: ncs_earthquakes
+    name: National Center for Seismology
+    category: sensor_context
+    url: https://seismo.gov.in/
+    access: open
+    format: needs_review
+    update_frequency: event based
+    license: needs_review
+    region_coverage: India
+    fallback: USGS catalog (different completeness)
+    target_path: data_sources/raw/{region}/ncs/
+    status: needs_review
+  - id: academic_sensor_networks
+    name: Academic geotechnical sensor networks
+    category: sensors
+    url: null
+    access: manual
+    format: needs_review
+    update_frequency: station dependent
+    license: permission required
+    region_coverage: project dependent
+    fallback: none
+    target_path: data_sources/raw/{region}/academic_sensors/
+    status: manual
+  - id: citizen_reports
+    name: Citizen incident reports
+    category: sensors
+    url: null
+    access: manual
+    format: validated report schema (planned)
+    update_frequency: event based
+    license: consent and privacy review required
+    region_coverage: user submitted
+    fallback: none
+    target_path: data_sources/raw/{region}/citizen_reports/
+    status: needs_review
+  - id: open_meteo_forecast
+    name: Open-Meteo forecast API
+    category: meteorology
+    url: https://api.open-meteo.com/v1/forecast
+    access: open
+    format: JSON
+    update_frequency: model run cadence
+    license: free API non-commercial terms and attribution; verify before deployment
+    region_coverage: global
+    fallback: DEMO weather clearly tagged
+    target_path: data_sources/raw/{region}/open_meteo_forecast.json
+    status: needs_review
+  - id: imd_forecast
+    name: India Meteorological Department forecast
+    category: meteorology
+    url: https://mausam.imd.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: forecast cycle
+    license: needs_review
+    region_coverage: India
+    fallback: Open-Meteo (not official IMD warning)
+    target_path: data_sources/raw/{region}/imd_forecast/
+    status: needs_review
+  - id: mosdac
+    name: MOSDAC meteorological products
+    category: meteorology
+    url: https://mosdac.gov.in/
+    access: login
+    format: needs_review
+    update_frequency: product dependent
+    license: needs_review
+    region_coverage: India and surrounding region
+    fallback: none
+    target_path: data_sources/raw/{region}/mosdac/
+    status: needs_review
+  - id: gpm_imerg
+    name: NASA GPM IMERG precipitation
+    category: meteorology
+    url: https://gpm.nasa.gov/data/imerg
+    access: login
+    format: HDF5/NetCDF
+    update_frequency: half-hourly products
+    license: NASA data terms; product/version attribution required
+    region_coverage: global
+    fallback: Open-Meteo reanalysis
+    target_path: data_sources/raw/{region}/gpm_imerg/
+    status: manual
+  - id: chirps
+    name: CHIRPS rainfall
+    category: meteorology
+    url: https://www.chc.ucsb.edu/data/chirps
+    access: open
+    format: GeoTIFF/NetCDF
+    update_frequency: daily/monthly products
+    license: product terms and citation to verify
+    region_coverage: 50S-50N
+    fallback: Open-Meteo reanalysis
+    target_path: data_sources/raw/{region}/chirps/
+    status: needs_review
+  - id: era5_land
+    name: ECMWF ERA5-Land
+    category: meteorology
+    url: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land
+    access: login
+    format: GRIB/NetCDF
+    update_frequency: daily with delay
+    license: Copernicus licence and account terms
+    region_coverage: global
+    fallback: Open-Meteo ERA5-Land API
+    target_path: data_sources/raw/{region}/era5_land/
+    status: manual
+  - id: ncmrwf
+    name: NCMRWF forecast products
+    category: meteorology
+    url: https://ncmrwf.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: model cycle
+    license: needs_review
+    region_coverage: India and regional domains
+    fallback: none
+    target_path: data_sources/raw/{region}/ncmrwf/
+    status: needs_review
+  - id: noaa_gfs
+    name: NOAA Global Forecast System
+    category: meteorology
+    url: https://www.ncei.noaa.gov/products/weather-climate-models/global-forecast
+    access: open
+    format: GRIB2
+    update_frequency: four cycles per day
+    license: U.S. government data; product terms to verify
+    region_coverage: global
+    fallback: Open-Meteo forecast
+    target_path: data_sources/raw/{region}/noaa_gfs/
+    status: needs_review
+  - id: imd_radar
+    name: IMD weather radar
+    category: meteorology
+    url: https://mausam.imd.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: radar scan cadence
+    license: needs_review
+    region_coverage: radar coverage to verify
+    fallback: none
+    target_path: data_sources/raw/{region}/imd_radar/
+    status: needs_review
+  - id: openweathermap
+    name: OpenWeatherMap
+    category: meteorology
+    url: https://openweathermap.org/api
+    access: api_key
+    format: JSON
+    update_frequency: product dependent
+    license: API plan-specific terms
+    region_coverage: global
+    fallback: Open-Meteo
+    target_path: data_sources/raw/{region}/openweathermap/
+    status: needs_review
+  - id: sentinel_1
+    name: Copernicus Sentinel-1 SAR
+    category: satellite
+    url: https://dataspace.copernicus.eu/
+    access: login
+    format: SAFE/GeoTIFF
+    update_frequency: acquisition dependent
+    license: Copernicus Sentinel terms
+    region_coverage: global acquisition swaths
+    fallback: none
+    target_path: data_sources/raw/{region}/sentinel1/
+    status: manual
+  - id: sentinel_2
+    name: Copernicus Sentinel-2 optical
+    category: satellite
+    url: https://dataspace.copernicus.eu/
+    access: login
+    format: SAFE/GeoTIFF
+    update_frequency: acquisition dependent
+    license: Copernicus Sentinel terms
+    region_coverage: global acquisition swaths
+    fallback: none
+    target_path: data_sources/raw/{region}/sentinel2/
+    status: manual
+  - id: smap
+    name: NASA SMAP soil moisture
+    category: satellite
+    url: https://earthdata.nasa.gov/data/instruments/smap
+    access: login
+    format: HDF5/NetCDF
+    update_frequency: product dependent
+    license: NASA data terms; product/version attribution required
+    region_coverage: global
+    fallback: Open-Meteo modeled soil moisture
+    target_path: data_sources/raw/{region}/smap/
+    status: manual
+  - id: landsat
+    name: USGS Landsat Collection
+    category: satellite
+    url: https://www.usgs.gov/landsat-missions
+    access: login
+    format: GeoTIFF/COG
+    update_frequency: acquisition dependent
+    license: public data; verify product and archive access terms
+    region_coverage: global acquisition swaths
+    fallback: none
+    target_path: data_sources/raw/{region}/landsat/
+    status: manual
+  - id: resourcesat
+    name: ISRO Resourcesat
+    category: satellite
+    url: https://www.nrsc.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: acquisition dependent
+    license: permission/reuse terms to verify
+    region_coverage: India
+    fallback: none
+    target_path: data_sources/raw/{region}/resourcesat/
+    status: needs_review
+  - id: cartosat
+    name: ISRO Cartosat
+    category: satellite
+    url: https://www.nrsc.gov.in/
+    access: manual
+    format: needs_review
+    update_frequency: acquisition dependent
+    license: permission/reuse terms to verify
+    region_coverage: India
+    fallback: Copernicus DEM (different source/resolution)
+    target_path: data_sources/raw/{region}/cartosat/
+    status: needs_review
+  - id: firms
+    name: NASA FIRMS active fire observations
+    category: satellite
+    url: https://firms.modaps.eosdis.nasa.gov/
+    access: api_key
+    format: CSV/JSON
+    update_frequency: near real time
+    license: NASA data terms and attribution
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/firms/
+    status: needs_review
+  - id: opera
+    name: NASA OPERA products
+    category: satellite
+    url: https://www.jpl.nasa.gov/go/opera/
+    access: login
+    format: Cloud-Optimized GeoTIFF
+    update_frequency: product dependent
+    license: NASA product terms
+    region_coverage: product dependent
+    fallback: none
+    target_path: data_sources/raw/{region}/opera/
+    status: needs_review
+  - id: modis_viirs
+    name: MODIS and VIIRS land products
+    category: satellite
+    url: https://earthdata.nasa.gov/data/catalog
+    access: login
+    format: HDF/GeoTIFF
+    update_frequency: product dependent
+    license: NASA data terms; product-specific attribution
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/modis_viirs/
+    status: manual
+  - id: grace_fo
+    name: GRACE-FO gravity and water storage
+    category: satellite
+    url: https://gracefo.jpl.nasa.gov/data/
+    access: login
+    format: NetCDF
+    update_frequency: monthly/product dependent
+    license: NASA product terms
+    region_coverage: global
+    fallback: none
+    target_path: data_sources/raw/{region}/grace_fo/
+    status: manual
+  - id: planetary_computer
+    name: Microsoft Planetary Computer
+    category: satellite
+    url: https://planetarycomputer.microsoft.com/docs/
+    access: api_key
+    format: STAC/COG
+    update_frequency: collection dependent
+    license: per collection
+    region_coverage: collection dependent
+    fallback: none
+    target_path: data_sources/raw/{region}/planetary_computer/
+    status: needs_review
+  - id: google_earth_engine
+    name: Google Earth Engine
+    category: satellite
+    url: https://developers.google.com/earth-engine
+    access: login
+    format: server-side image collections
+    update_frequency: collection dependent
+    license: per dataset; GEE terms
+    region_coverage: collection dependent
+    fallback: none
+    target_path: data_sources/processed/{region}/earth_engine/
+    status: manual
+  - id: cpcb_air_quality
+    name: CPCB air-quality data (non-landslide context)
+    category: air_quality
+    url: https://cpcb.nic.in/
+    access: manual
+    format: needs_review
+    update_frequency: station dependent
+    license: needs_review
+    region_coverage: India; Nilgiris station coverage to verify
+    fallback: excluded from landslide risk model by default
+    target_path: data_sources/raw/{region}/cpcb/
+    status: needs_review

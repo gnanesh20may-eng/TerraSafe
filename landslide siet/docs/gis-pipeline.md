@@ -13,6 +13,14 @@ The GIS layer converts spatial environmental signals into terrain risk features 
 - land-cover and slope-derived products
 - rainfall and weather rasters
 
+### Current provider status
+
+- Weather: `OpenMeteoWeatherProvider` is selected when `DEMO_MODE=false`. It requests current temperature and wind plus hourly precipitation and modeled near-surface soil moisture. Rainfall accumulations are calculated from the returned hourly series; soil moisture remains unavailable when the source omits it.
+- Terrain and satellite: the active implementations are still demo providers. Their values must not be interpreted as live DEM or Earth-observation products.
+- Environment responses report `LIVE DATA`, `MIXED LIVE/DEMO DATA`, or `DEMO DATA`, and include fetch time plus the weather observation time. An unavailable weather service returns HTTP 503 rather than silently substituting demo measurements.
+
+Live weather ingestion alone is not a validated landslide model input pipeline. Scores and recommendations remain demonstration decision support until inference and validation are complete.
+
 ## Processing flow
 
 ```text
