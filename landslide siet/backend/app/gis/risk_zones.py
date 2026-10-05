@@ -8,7 +8,7 @@ from typing import Any
 class RiskSignals:
     rainfall_24h_mm: float
     rainfall_7d_mm: float
-    soil_moisture_pct: float
+    soil_moisture_pct: float | None
     slope_deg: float
     ndvi: float
     elevation_m: float
@@ -44,10 +44,11 @@ def calculate_risk_score(signals: RiskSignals) -> dict[str, Any]:
         rainfall_score += 10
 
     moisture_score = 0.0
-    if signals.soil_moisture_pct >= 70:
-        moisture_score += 18
-    elif signals.soil_moisture_pct >= 55:
-        moisture_score += 10
+    if signals.soil_moisture_pct is not None:
+        if signals.soil_moisture_pct >= 70:
+            moisture_score += 18
+        elif signals.soil_moisture_pct >= 55:
+            moisture_score += 10
 
     slope_score = 0.0
     if signals.slope_deg >= 30:
@@ -77,7 +78,7 @@ def calculate_risk_score(signals: RiskSignals) -> dict[str, Any]:
     reasons: list[str] = []
     if signals.rainfall_24h_mm >= 60:
         reasons.append("Heavy 24-hour rainfall")
-    if signals.soil_moisture_pct >= 70:
+    if signals.soil_moisture_pct is not None and signals.soil_moisture_pct >= 70:
         reasons.append("Saturated soil")
     if signals.slope_deg >= 30:
         reasons.append("Steep terrain")

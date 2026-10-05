@@ -34,3 +34,5 @@ data_sources/raw/
 data_sources/processed/
 data_sources/mock/
 logs/
+backend/models/*.joblib
+backend/models/*.onnx

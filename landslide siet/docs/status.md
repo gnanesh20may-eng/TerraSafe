@@ -15,7 +15,13 @@ Last audited: 2026-10-05. This register describes the checked-out `landslide sie
 | Satellite/NDVI/land cover | DEMO | `DemoSatelliteProvider`; no Earth Engine/Sentinel integration. |
 | Risk score | DEMO | Hand-weighted GIS signals; not a trained production predictor. Risk-zone score output is bounded 0–100. Backend tests cover classification/GeoJSON. |
 | Model evaluation | SCAFFOLD/DEMO | Synthetic pilot/evaluation code only; no real inventory labels or externally validated metrics verified in this audit. |
-| Confidence/uncertainty | MISSING (calibrated) | Existing risk service returns a fixed confidence value; must not be interpreted as calibrated uncertainty. |
+| LogisticRegression inference fallback | DEMO | `InferenceEngine` loads a local artifact or fits LogisticRegression on generated synthetic cells. It is not connected to `/api/v1/risk`; its probability is not a real-event prediction. |
+| Tree model import fallback | LIVE (probe and test) | Optional imports are guarded; LogisticRegression remains available. RandomForest import probe returned `TREE_IMPORT_OK`; no tree-model training was run. |
+| Confidence/uncertainty | MISSING (calibrated) | Risk service now reports confidence unavailable; inference returns a placeholder until a calibrated conformal model is supplied. |
+| Physics and rainfall hybrid | SCAFFOLD/SIMULATED | Infinite-slope and intensity-duration helpers have pure unit tests; no measured soil parameters, locally calibrated coefficients, or hybrid weights are available. Hybrid is not connected to risk API. |
+| Slope memory/adaptive thresholds/model disagreement | SCAFFOLD | Pure helper modules and unit tests exist; no operational histories or zone calibration data are connected. |
+| Colab notebooks and model export | SCAFFOLD (NOT RUN) | Four notebooks exist with empty execution outputs. No model training/export, ONNX, TFT, MAPIE, or SHAP run occurred. |
+| Exported model artifacts | MISSING | No reviewed export is present. HTTPS/SHA-256 <=200 MiB fetch script exists; no artifact fetched. |
 | Alerts and transitions | SIMULATED | In-process alert engine and response payload; no persistence, authorization, delivery, cooldown or audit chain. Existing alert tests pass. |
 | Safe zones, rescue information and contact | DEMO | Hard-coded sample facilities and placeholder contact; not verified for real emergency use. |
 | SOS API and delivery | MISSING | No `/sos` route found in `backend/main.py` or API router. |
@@ -29,7 +35,7 @@ Last audited: 2026-10-05. This register describes the checked-out `landslide sie
 | Offline PWA / local SOS queue | MISSING | No service worker, IndexedDB or offline synchronization implementation. |
 | IoT sensor firmware and simulator | MISSING | No `iot/` directory or sensor ingestion endpoint found. |
 | Mobile mesh / missing-person workflows | MISSING | No mobile project, mesh implementation or missing-person API found. |
-| Tests | LIVE (local test execution) | `pytest backend/tests -q`: 30 passed on 2026-10-05. Coverage is focused unit tests; no database or E2E suite. |
+| Tests | LIVE (local test execution) | Phase 3 full suite: `pytest backend/tests -q`: 40 passed on 2026-10-05. Coverage is focused unit tests; no database or E2E suite. |
 | Frontend build | LIVE (local build execution) | `npm run build`: passed; six actual routes listed above. |
 | Frontend dependencies/security audit | NEEDS REVIEW | `npm install` reported 8 findings (1 moderate, 6 high, 1 critical). No forced fix was applied. |
 | Contributor setup and repository templates | LIVE (syntax-checked) | PowerShell and Bash setup scripts parse; README, onboarding, PR template, CODEOWNERS placeholder, issue-label guide, and CI lockfile/typecheck steps are present. Setup installs were not run by the syntax check. |

@@ -61,6 +61,15 @@ Inputs include:
 - register model via MLflow
 - serve inference through FastAPI
 
+## Current implementation status
+
+- `backend/app/ml/inference.py` loads a local model artifact when present; with no artifact it fits a deterministic LogisticRegression model on synthetic cells and marks its output DEMO. It is not wired into the risk API yet.
+- Predictive uncertainty is explicitly unavailable without a conformal model. Current per-instance explanation is a LogisticRegression coefficient contribution, not SHAP.
+- The physics helper calculates an infinite-slope factor of safety only from caller-supplied soil parameters. Rainfall intensity-duration coefficients and hybrid weights require local calibration; helper output is labelled SCAFFOLD/SIMULATED.
+- Four notebooks under `notebooks/` are Colab scaffolds and have not been run. No tree-model comparison, TFT, SHAP, MAPIE, ONNX, or model export has been validated here.
+- Optional tree imports are guarded and LogisticRegression remains the minimum viable local path. In this workspace, the RandomForest import probe returned `TREE_IMPORT_OK`; no tree model training was attempted.
+- `scripts/fetch_models.py` requires HTTPS and a matching SHA-256 manifest, caps downloads at 200 MiB, and targets `backend/models/`. A checksum does not establish publisher trust; joblib artifacts are executable pickle payloads.
+
 ## Demo and production note
 
 This repository uses demo/synthetic data in development mode. Production deployments should replace the demo provider with verified data and a trained model with documented validation metrics.
