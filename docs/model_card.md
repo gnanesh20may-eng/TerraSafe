@@ -36,6 +36,18 @@ scores unsuitable for generalization claims. The pilot needs real,
 time-consistent, spatially held-out inventory and covariate data, calibration,
 independent validation, and domain review before any applied use.
 
+## P2 dynamic-risk status
+
+The P2 code adds missingness-aware antecedent rainfall, configurable
+intensity-duration comparisons, an infinite-slope factor-of-safety scenario
+calculation, a non-calibrated hybrid risk index, and deterministic 24/48/72h
+trigger outlooks. It does not claim a trained TFT/LSTM: real, time-aligned
+training and calibration series were not available. Conformal intervals are
+only emitted with an adequate held-out calibration set. PSI is used as an
+operator-review drift signal, not an automatic retraining or promotion rule.
+The P2 package also exposes MAPIE split-conformal intervals and ONNX export
+helpers; neither constitutes deployment approval or calibration evidence.
+
 ## Reproduction
 
 Install `requirements.txt`, then run:

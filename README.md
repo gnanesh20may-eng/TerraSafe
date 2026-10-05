@@ -35,3 +35,13 @@ and must never guide safety decisions.
 Pass `--region` and four WGS84 coordinates (`west south east north`) to label
 and place a synthetic pilot grid for another area. Its terrain layers and
 inventory labels remain synthetic.
+
+## P2: dynamic risk and forecast baseline
+
+The async source adapters run entirely from labeled fixtures by default.
+Open-Meteo and USGS have opt-in live JSON adapters; NASA/IMD sources require
+configured product-specific endpoints and normalization. The P2 rainfall,
+infinite-slope, dynamic-risk, 24/48/72-hour forecast, conformal interval, SHAP,
+counterfactual, and PSI helpers are documented in `docs/dynamic-risk.md`.
+Thresholds and the trigger-based forecast are experimental, and no real
+provider feed or trained time-series model is implied.
