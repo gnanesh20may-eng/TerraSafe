@@ -2,7 +2,7 @@
 
 ## Overview
 
-LandSense uses two complementary models:
+TerraSafe uses two complementary models:
 
 1. Susceptibility model: static and long-term terrain features
 2. Trigger model: dynamic rainfall and environmental conditions

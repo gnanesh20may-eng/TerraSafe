@@ -70,7 +70,7 @@ def get_location_by_id(location_id: str) -> dict | None:
 def health():
     return {
         "status": "ok",
-        "service": "landsense-api",
+        "service": "terrasafe-api",
         "environment": "development",
         "demo_mode": True,
     }
@@ -222,3 +222,22 @@ def get_alerts():
             {"id": "a1", "risk_state": "HIGH", "alert_state": "NEW", "message": "Elevated rainfall and soil moisture in monitored area.", "created_at": "2026-10-05T11:40:00Z"},
         ]
     }
+
+
+def test_environment_response_keeps_live_weather_separate_from_demo_layers(monkeypatch):
+    from backend.app.providers.base import WeatherConditions
+
+    monkeypatch.setattr(
+        environment_service.weather_provider,
+        "get_current_weather",
+        lambda location: WeatherConditions(12, 48, 37, 10, 21, "open-meteo"),
+    )
+    location = LocationRef("coonor", "Coonoor", 11.35, 76.8, "Nilgiris District")
+
+    snapshot = environment_service.get_environment(location)
+
+    assert snapshot["weather"]["rainfall_24h_mm"] == 12
+    assert snapshot["weather"]["source"] == "open-meteo"
+    assert snapshot["data_status"] == "LIVE WEATHER + DEMO TERRAIN/SATELLITE"
+    assert snapshot["terrain"]["source"].startswith("DEMO")
+    assert snapshot["satellite"]["source"].startswith("DEMO")

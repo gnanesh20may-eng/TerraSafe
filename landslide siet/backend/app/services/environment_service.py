@@ -3,7 +3,7 @@ from __future__ import annotations
 from backend.app.providers.base import LocationRef
 from backend.app.providers.satellite import DemoSatelliteProvider
 from backend.app.providers.terrain import DemoTerrainProvider
-from backend.app.providers.weather import DemoWeatherProvider
+from backend.app.providers.weather import OpenMeteoWeatherProvider
 
 
 class EnvironmentService:
@@ -13,7 +13,7 @@ class EnvironmentService:
         terrain_provider=None,
         satellite_provider=None,
     ) -> None:
-        self.weather_provider = weather_provider or DemoWeatherProvider()
+        self.weather_provider = weather_provider or OpenMeteoWeatherProvider()
         self.terrain_provider = terrain_provider or DemoTerrainProvider()
         self.satellite_provider = satellite_provider or DemoSatelliteProvider()
 
@@ -54,7 +54,11 @@ class EnvironmentService:
                 "source": satellite.source,
             },
             "last_updated": "2026-10-05T12:00:00Z",
-            "data_status": "DEMO DATA",
+            "data_status": (
+                "LIVE WEATHER + DEMO TERRAIN/SATELLITE"
+                if weather.source == "open-meteo"
+                else "DEMO DATA"
+            ),
         }
 
 

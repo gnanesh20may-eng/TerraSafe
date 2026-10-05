@@ -21,7 +21,7 @@ export function RiskMap({ center, selectedName }: { center: [number, number]; se
       zoom: 10,
       pitch: 35,
       bearing: 0,
-      attributionControl: true,
+      attributionControl: false,
     });
 
     mapRef.current = map;

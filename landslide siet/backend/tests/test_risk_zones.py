@@ -5,7 +5,11 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
-from backend.app.gis.risk_zones import build_risk_zone_geojson
+from backend.app.gis.risk_zones import (
+    build_risk_zone_feature,
+    build_risk_zone_geojson,
+    classify_level,
+)
 from backend.app.providers.base import LocationRef
 from backend.app.services.environment_service import environment_service
 from backend.app.services.risk_service import risk_service
@@ -72,7 +76,7 @@ def get_location_by_id(location_id: str) -> dict | None:
 def health():
     return {
         "status": "ok",
-        "service": "landsense-api",
+        "service": "terrasafe-api",
         "environment": "development",
         "demo_mode": True,
     }
@@ -224,3 +228,31 @@ def get_data_sources():
         "terrain_source": "DEMO TERRAIN PROVIDER",
         "last_update": "2026-10-05T12:00:00Z",
     }
+
+
+def test_risk_zone_geojson_has_closed_polygon_and_synthetic_disclaimer():
+    result = build_risk_zone_geojson(
+        [{"id": "coonor", "name": "Coonoor", "latitude": 11.35, "longitude": 76.8}],
+        {"coonor": 63},
+    )
+    feature = result["features"][0]
+    ring = feature["geometry"]["coordinates"][0]
+
+    assert feature["properties"]["zone"] == "HIGH"
+    assert ring[0] == ring[-1]
+    assert result["metadata"]["source"] == "DEMO GIS ZONE"
+    assert "not official hazard mapping" in result["metadata"]["disclaimer"]
+
+
+def test_risk_level_thresholds_are_consistent():
+    assert [classify_level(score) for score in (0, 24, 25, 49, 50, 74, 75, 100)] == [
+        "LOW", "LOW", "WATCH", "WATCH", "HIGH", "HIGH", "CRITICAL", "CRITICAL"
+    ]
+
+
+def test_risk_zone_feature_clamps_geometry_to_a_closed_polygon():
+    feature = build_risk_zone_feature("Edge", 90, 180, 100)
+    ring = feature["geometry"]["coordinates"][0]
+
+    assert feature["properties"]["risk_level"] == "CRITICAL"
+    assert ring[0] == ring[-1]

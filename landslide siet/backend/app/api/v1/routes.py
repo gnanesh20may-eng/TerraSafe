@@ -69,11 +69,21 @@ def get_location_by_id(location_id: str) -> dict | None:
 
 @router.get("/health")
 def health():
+    weather = environment_service.weather_provider.get_current_weather(
+        LocationRef(
+            id="coonor",
+            name="Coonoor",
+            latitude=11.35,
+            longitude=76.8,
+            admin_region="Nilgiris District",
+        )
+    )
     return {
         "status": "ok",
-        "service": "landsense-api",
+        "service": "terrasafe-api",
         "environment": "development",
-        "demo_mode": True,
+        "demo_mode": weather.source != "open-meteo",
+        "weather_source": weather.source,
     }
 
 
@@ -97,6 +107,33 @@ def get_location(location_id: str):
     if location is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")
     return location
+
+
+@router.get("/risk", response_model=RiskResponse)
+def get_risk_at_coordinates(
+    latitude: float = Query(ge=-90, le=90),
+    longitude: float = Query(ge=-180, le=180),
+    name: str = Query(default="Current location", max_length=120),
+):
+    result = risk_service.evaluate_location(
+        LocationRef(
+            id="current-location",
+            name=name,
+            latitude=latitude,
+            longitude=longitude,
+            admin_region="Device location",
+        )
+    )
+    return {
+        "location": result["location"],
+        "risk": result["risk"],
+        "confidence": result["confidence"],
+        "environment": result["environment"],
+        "terrain": result["terrain"],
+        "contributors": result["contributors"],
+        "recommendation": result["recommendation"],
+        "timestamp": result["timestamp"],
+    }
 
 
 @router.get("/risk/{location_id}", response_model=RiskResponse)

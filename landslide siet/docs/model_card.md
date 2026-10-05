@@ -1,4 +1,4 @@
-# LandSense susceptibility model card (P1)
+# TerraSafe susceptibility model card (P1)
 
 ## Status and intended use
 

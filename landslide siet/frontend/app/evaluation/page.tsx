@@ -10,14 +10,14 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">L</div>
             <div>
-              <p className="text-sm font-semibold tracking-[0.2em] text-slate-500 uppercase">LandSense</p>
+              <p className="text-sm font-semibold tracking-[0.2em] text-slate-500 uppercase">TerraSafe</p>
             </div>
           </div>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
             <Link href="/">Home</Link>
             <Link href="/evaluation">Evaluation</Link>
-            <Link href="/rescue-hub">Rescue Hub</Link>
+            <Link href="/rescue">Rescue Hub</Link>
             <Link href="/alerts">Alerts</Link>
             <Link href="/settings">Settings</Link>
           </nav>

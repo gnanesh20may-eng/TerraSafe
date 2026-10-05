@@ -13,6 +13,7 @@
 - `GET /api/v1/locations/search`
 - `GET /api/v1/locations/{id}`
 - `GET /api/v1/risk/{location_id}`
+- `GET /api/v1/risk?latitude={lat}&longitude={lon}`
 - `GET /api/v1/risk/{location_id}/history`
 - `GET /api/v1/environment/{location_id}`
 - `GET /api/v1/terrain/{location_id}`
@@ -24,6 +25,16 @@
 - `POST /api/v1/alerts/preferences`
 - `GET /api/v1/data-sources`
 - `GET /api/v1/models`
+- `GET /sos`
+- `POST /sos`
+
+Weather fields include `source`, set to `open-meteo` when the live request
+succeeds and `demo` when it falls back. `/health` and `/api/v1/health` report
+`weather_source` and set `demo_mode` according to the current Open-Meteo check.
+
+SOS events are stored in backend process memory for this demonstration and are
+cleared when the process restarts. They are not delivered to emergency
+services.
 
 ## Example risk response
 

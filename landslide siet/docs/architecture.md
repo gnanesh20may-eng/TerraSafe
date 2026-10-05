@@ -2,7 +2,7 @@
 
 ## 1. Product architecture
 
-LandSense follows a four-layer decision-support architecture:
+TerraSafe follows a four-layer decision-support architecture:
 
 1. Data acquisition
    - Weather and precipitation providers

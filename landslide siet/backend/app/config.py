@@ -12,7 +12,7 @@ def get_bool(name: str, default: bool = False) -> bool:
         return default
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
-APP_NAME = os.getenv("APP_NAME", "LandSense")
+APP_NAME = os.getenv("APP_NAME", "TerraSafe")
 APP_ENV = os.getenv("APP_ENV", "development")
 DEMO_MODE = get_bool("DEMO_MODE", True)
 

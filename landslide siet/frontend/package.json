@@ -1,39 +1,27 @@
-import Link from 'next/link';
-
-export default function SettingsPage() {
-  return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-4xl">
-        <header className="mb-8 flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Settings</p>
-            <h1 className="mt-2 text-3xl font-bold">Monitoring preferences</h1>
-          </div>
-          <Link href="/" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
-            Home
-          </Link>
-        </header>
-
-        <div className="space-y-6">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Early warning alerts</h2>
-            <div className="mt-5 space-y-3 text-sm text-slate-700">
-              <div className="flex items-center justify-between"><span>Enable alerts</span><span>On</span></div>
-              <div className="flex items-center justify-between"><span>Risk threshold</span><span>WATCH</span></div>
-              <div className="flex items-center justify-between"><span>Alert severity</span><span>High priority</span></div>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Data sources</h2>
-            <div className="mt-5 space-y-3 text-sm text-slate-700">
-              <div className="flex items-center justify-between"><span>Weather source</span><span>Open-Meteo</span></div>
-              <div className="flex items-center justify-between"><span>Satellite source</span><span>Sentinel / DEM</span></div>
-              <div className="flex items-center justify-between"><span>Terrain source</span><span>DEM / Topography</span></div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  );
+{
+  "name": "terrasafe-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "maplibre-gl": "^5.4.0",
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.10",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.16",
+    "typescript": "5.6.3"
+  }
 }

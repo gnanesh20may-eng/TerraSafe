@@ -1,6 +1,6 @@
-# LandSense
+# TerraSafe
 
-LandSense is an AI-assisted landslide early-warning and risk-monitoring platform for geospatial decision support. This repository currently contains the Phase 1 foundation for a production-grade architecture and a runnable local backend scaffold.
+TerraSafe is an AI-assisted landslide early-warning and risk-monitoring platform for geospatial decision support. This repository currently contains a runnable local demonstration and backend scaffold.
 
 ## Purpose
 
@@ -94,6 +94,14 @@ cp .env.example .env
 ## Risk disclaimer
 
 This project intentionally uses clearly marked demo/synthetic data and monitoring logic for development. Real operational deployment requires validated data sources, trained models, geospatial grounding, and official warning workflows.
+
+## Known limitations
+
+- **Live:** Weather requests use Open-Meteo without an API key and have a five-second timeout. A failed request falls back to clearly labelled demo weather. Browser geolocation is used only after the user grants permission.
+- **Demo:** Terrain and satellite observations, location catalogue, risk history, shelters, contacts, and susceptibility training data are demonstration data. Risk estimates are not official warnings.
+- **Simulated:** The `/rescue` relay path, device signal states, and family links are UI simulation only; no Bluetooth, radio, or device-to-device mesh is implemented. SOS API events are kept in process memory and are lost when the backend restarts; they are not forwarded to emergency services.
+
+See [docs/evaluation.md](docs/evaluation.md) for the measured synthetic-data metrics and their limits.
 
 ## Phase 1 outcomes
 

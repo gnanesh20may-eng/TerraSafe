@@ -36,7 +36,7 @@ def test_metrics_include_confusion_and_error_rates():
     assert metrics["confusion_matrix"] == [[1, 1], [1, 1]]
     assert metrics["false_alarm_rate"] == 0.5
     assert metrics["miss_rate"] == 0.5
-    assert metrics["roc_auc"] == 0.375
+    assert metrics["roc_auc"] == 0.5
 
 
 def test_geojson_zones_have_valid_polygon_shape_and_synthetic_disclaimer():

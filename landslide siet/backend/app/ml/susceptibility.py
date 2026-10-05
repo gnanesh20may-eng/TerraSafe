@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from backend.app.ml.synthetic_data import FEATURE_COLUMNS, SyntheticPilot
 
@@ -77,22 +78,7 @@ def _classification_metrics(y_true: np.ndarray, scores: np.ndarray) -> dict[str,
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
     roc_auc = None
     if np.count_nonzero(positive) and np.count_nonzero(negative):
-        order = np.argsort(scores, kind="mergesort")
-        ordered_scores = scores[order]
-        ranks = np.empty(len(scores), dtype=float)
-        start = 0
-        while start < len(scores):
-            end = start + 1
-            while end < len(scores) and ordered_scores[end] == ordered_scores[start]:
-                end += 1
-            ranks[order[start:end]] = (start + 1 + end) / 2
-            start = end
-        positive_count = int(np.count_nonzero(positive))
-        negative_count = int(np.count_nonzero(negative))
-        roc_auc = float(
-            (ranks[positive].sum() - positive_count * (positive_count + 1) / 2)
-            / (positive_count * negative_count)
-        )
+        roc_auc = float(roc_auc_score(y_true, scores))
     return {
         "accuracy": float(np.mean(y_true == predicted)),
         "precision": float(precision),
@@ -199,7 +185,7 @@ def make_zone_geojson(pilot: SyntheticPilot, model: Any) -> dict[str, Any]:
         )
     return {
         "type": "FeatureCollection",
-        "name": "LandSense synthetic susceptibility zones",
+        "name": "TerraSafe synthetic susceptibility zones",
         "metadata": {
             "region": pilot.region,
             "data_source": pilot.source_label,
@@ -253,7 +239,7 @@ def _log_to_mlflow(result: dict[str, Any]) -> None:
     except ImportError:
         LOGGER.warning("MLflow is not installed; metrics were exported to metrics.json only.")
         return
-    with mlflow.start_run(run_name="landsense-synthetic-susceptibility"):
+    with mlflow.start_run(run_name="terrasafe-synthetic-susceptibility"):
         mlflow.set_tag("data_source", result["data_source"])
         mlflow.set_tag("region", result["region"])
         mlflow.set_tag("validation", result["validation"])

@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-from typing import ReactNode
-
 export type RiskLevel = 'LOW' | 'WATCH' | 'HIGH' | 'CRITICAL';
 
 export type LocationOption = {

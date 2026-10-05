@@ -17,6 +17,7 @@ htmlcov/
 
 # Frontend
 node_modules/
+frontend/.next/
 frontend/dist/
 frontend/.vite/
 

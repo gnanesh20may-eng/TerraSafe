@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LandSense',
+  title: 'TerraSafe',
   description: 'AI-based landslide early warning and rescue intelligence platform',
 };
 

@@ -1,1 +1,1 @@
-"""Machine-learning pipelines used by the LandSense backend."""
+"""Machine-learning pipelines used by the TerraSafe backend."""
