@@ -30,3 +30,5 @@ ml/data/generated/*.geojson
 /data/raw/
 /logs/
 /backend/models/
+__pycache__/ 
+*.pyc 
