@@ -22,20 +22,24 @@ Last audited: 2026-10-05. This register describes the checked-out `landslide sie
 | Slope memory/adaptive thresholds/model disagreement | SCAFFOLD | Pure helper modules and unit tests exist; no operational histories or zone calibration data are connected. |
 | Colab notebooks and model export | SCAFFOLD (NOT RUN) | Four notebooks exist with empty execution outputs. No model training/export, ONNX, TFT, MAPIE, or SHAP run occurred. |
 | Exported model artifacts | MISSING | No reviewed export is present. HTTPS/SHA-256 <=200 MiB fetch script exists; no artifact fetched. |
-| Alerts and transitions | SIMULATED | In-process alert engine and response payload; no persistence, authorization, delivery, cooldown or audit chain. Existing alert tests pass. |
+| Alert persistence/lifecycle | LIVE (local SQLite) | SQLAlchemy 2 tables and Alembic baseline persist alerts/events. Authority roles create/approve; allowed lifecycle is enforced; audit events are hash-chained and tamper-tested. `SENT` is explicitly MOCK ONLY. |
+| SOS API | LIVE (local persistence) | `POST /sos` persists an OPEN request with optional coordinates; `GET /sos` requires responder/authority JWT. Integration tests pass. Delivery remains MOCK and no responders are notified. |
+| JWT role authorization | SCAFFOLD / locally tested | Signed short-lived JWT roles gate alert create/approval and SOS queue reads; trusted operator token helper exists. No user directory/password login, refresh, revocation or external identity provider. |
+| CAP 1.2 export / SMS parser | SIMULATED | CAP export has Test status; inbound SMS only parses text and returns a SIMULATED response. No official message or SMS send. |
+| What-if and evacuation route | SIMULATED | What-if calls demo weighted logic. Shelter fallback picks closest demo shelter by straight-line distance; road routing/hazard avoidance not implemented. |
+| Alert cooldown/escalation/geofence/adapters | MISSING | No cooldown, dedupe escalation worker, geo-fence query, or real push/SMS/WhatsApp/email/voice provider. |
 | Safe zones, rescue information and contact | DEMO | Hard-coded sample facilities and placeholder contact; not verified for real emergency use. |
-| SOS API and delivery | MISSING | No `/sos` route found in `backend/main.py` or API router. |
 | Data-source health API | LIVE (generated snapshot) | `scripts/check_sources.py` wrote `data_sources/health.json` and `docs/data_health.md`: 2 WORKING, 0 FAILED, 12 MANUAL, 29 NEEDS_REVIEW. `/api/v1/health/data-sources` is covered by direct route tests; live server call not run. |
 | Source registry and download tooling | LIVE / SCAFFOLD | Registry has 43 sources and ten approximate regions. Streaming, retry, SHA-256, timeout, resume, dry-run and mock modes exist; only two open adapters were queried. |
 | Download data integrity checks | LIVE (local checks) | 168 weather rows passed timestamp order/uniqueness, array alignment, null/finite checks; WGS84 point validated. USGS GeoJSON parsed with 0 features. Spatial block leakage and label-balance helper tests pass. |
 | Historical/forecast API | MISSING | No real rainfall history/forecast endpoint or stored observations. |
-| Database/PostGIS/Alembic | MISSING | No ORM, migration or database persistence layer found. |
-| Authentication/RBAC | MISSING | No verified auth dependency or role checks on API routes. |
+| Database/PostGIS/Alembic | PARTIAL | SQLite/PostgreSQL SQLAlchemy persistence and Alembic migration for alerts/SOS. PostgreSQL driver configured; PostGIS geometry, broader domain schema, and production database verification remain missing. |
+| Authentication/RBAC | PARTIAL | JWT roles protect selected alert/SOS actions. Public alerts remain readable. No login/user store, general route policy, refresh/revocation, rate limiting, or audit identity verification. |
 | Redis/scheduler/notifications | MISSING | No active scheduled refresh, queue, push/SMS/email integration. |
 | Offline PWA / local SOS queue | MISSING | No service worker, IndexedDB or offline synchronization implementation. |
 | IoT sensor firmware and simulator | MISSING | No `iot/` directory or sensor ingestion endpoint found. |
 | Mobile mesh / missing-person workflows | MISSING | No mobile project, mesh implementation or missing-person API found. |
-| Tests | LIVE (local test execution) | Phase 3 full suite: `pytest backend/tests -q`: 40 passed on 2026-10-05. Coverage is focused unit tests; no database or E2E suite. |
+| Tests | LIVE (local test execution) | Phase 4 `pytest backend/tests -q`: 47 passed on 2026-10-05. SQLite integration/hash-chain tests included; no PostgreSQL/PostGIS or browser E2E suite. |
 | Frontend build | LIVE (local build execution) | `npm run build`: passed; six actual routes listed above. |
 | Frontend dependencies/security audit | NEEDS REVIEW | `npm install` reported 8 findings (1 moderate, 6 high, 1 critical). No forced fix was applied. |
 | Contributor setup and repository templates | LIVE (syntax-checked) | PowerShell and Bash setup scripts parse; README, onboarding, PR template, CODEOWNERS placeholder, issue-label guide, and CI lockfile/typecheck steps are present. Setup installs were not run by the syntax check. |
@@ -43,7 +47,7 @@ Last audited: 2026-10-05. This register describes the checked-out `landslide sie
 
 ## Verified API Routes
 
-Backend routes found in source: `GET /`, `GET /health`, `GET /api/v1/health`, `GET /api/v1/health/data-sources`, `GET /api/v1/locations/search`, `GET /api/v1/locations/{location_id}`, `GET /api/v1/risk/{location_id}`, `GET /api/v1/risk/{location_id}/history`, `GET /api/v1/environment/{location_id}`, `GET /api/v1/terrain/{location_id}`, `GET /api/v1/map/risk-zones`, `GET /api/v1/safe-zones`, `GET /api/v1/rescue/nearby`, `GET /api/v1/alerts`, and `GET /api/v1/data-sources`. No live app server requests have been made yet.
+Backend routes found in source include `POST /sos`, protected `GET /sos`, persistent `GET/POST /api/v1/alerts`, `POST /api/v1/alerts/{id}/lifecycle`, `GET /api/v1/alerts/{id}/cap`, `POST /api/v1/simulate`, `GET /api/v1/rescue/route`, `POST /api/v1/sms/inbound`, and `GET /api/v1/models/metrics`, alongside the previously listed locations/risk/environment routes. API integration tests use TestClient; a separately started server has not been checked yet.
 
 ## Safety Note
 

@@ -36,3 +36,6 @@ data_sources/mock/
 logs/
 backend/models/*.joblib
 backend/models/*.onnx
+*.db
+*.db-shm
+*.db-wal

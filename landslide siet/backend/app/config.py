@@ -15,6 +15,15 @@ def get_bool(name: str, default: bool = False) -> bool:
 APP_NAME = os.getenv("APP_NAME", "LandSense")
 APP_ENV = os.getenv("APP_ENV", "development")
 DEMO_MODE = get_bool("DEMO_MODE", True)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./terrasafe.db")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
+    if origin.strip()
+]
 
 OPENMETEO_BASE_URL = os.getenv("OPENMETEO_BASE_URL", "https://api.open-meteo.com/v1")
 OPENMETEO_TIMEOUT_SECONDS = float(os.getenv("OPENMETEO_TIMEOUT_SECONDS", "5"))
