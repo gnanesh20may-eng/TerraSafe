@@ -1,36 +1,17 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "name": "terrasafe",
   "services": {
     "frontend": {
-      "root": "terrasafe",
-      "framework": "vite",
-      "installCommand": "npm install",
-      "buildCommand": "npm run build",
-      "devCommand": "npm run dev",
-      "public": true
+      "root": "terrasafe/",
+      "framework": "vite"
     },
     "api": {
-      "root": "backend/app",
+      "root": "backend/",
       "framework": "fastapi",
-      "installCommand": "pip install -r requirements.txt",
-      "buildCommand": "pip install -r requirements.txt",
-      "devCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
-      "public": true
+      "entrypoint": "app.main:app"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/v1/(.*)",
-      "destination": {
-        "service": "api"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "frontend"
-      }
-    }
+    { "source": "/api/v1/(.*)", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
   ]
 }
