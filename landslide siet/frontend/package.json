@@ -1,30 +1,39 @@
-{
-  "name": "landsense-frontend",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next": "14.2.15",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "lucide-react": "^0.453.0",
-    "class-variance-authority": "^0.2.0",
-    "clsx": "^2.1.21",
-    "tailwind-merge": "^2.5.0"
-  },
-  "devDependencies": {
-    "@types/node": "20.16.11",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "autoprefixer": "10.4.20",
-    "postcss": "8.4.47",
-    "tailwindcss": "3.4.13",
-    "typescript": "5.6.2",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.15"
-  }
+import Link from 'next/link';
+
+export default function SettingsPage() {
+  return (
+    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
+      <div className="mx-auto max-w-4xl">
+        <header className="mb-8 flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Settings</p>
+            <h1 className="mt-2 text-3xl font-bold">Monitoring preferences</h1>
+          </div>
+          <Link href="/" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+            Home
+          </Link>
+        </header>
+
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Early warning alerts</h2>
+            <div className="mt-5 space-y-3 text-sm text-slate-700">
+              <div className="flex items-center justify-between"><span>Enable alerts</span><span>On</span></div>
+              <div className="flex items-center justify-between"><span>Risk threshold</span><span>WATCH</span></div>
+              <div className="flex items-center justify-between"><span>Alert severity</span><span>High priority</span></div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Data sources</h2>
+            <div className="mt-5 space-y-3 text-sm text-slate-700">
+              <div className="flex items-center justify-between"><span>Weather source</span><span>Open-Meteo</span></div>
+              <div className="flex items-center justify-between"><span>Satellite source</span><span>Sentinel / DEM</span></div>
+              <div className="flex items-center justify-between"><span>Terrain source</span><span>DEM / Topography</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  );
 }
