@@ -27,6 +27,7 @@ from backend.app.alerts.engine import (
 from backend.app.alerts.evacuation import (
     SIMULATED_SHELTERS,
     MockOpenRouteServiceAdapter,
+    nearest_simulated_shelter,
 )
 from backend.app.alerts.notifications import (
     CHANNELS,
@@ -471,6 +472,14 @@ def nearest_evacuation_route(
 ):
     result = MockOpenRouteServiceAdapter().nearest_route(latitude, longitude)
     return {**result, "feature_status": "MISSING"}
+
+
+@app.get("/api/v1/evacuation", tags=["evacuation"])
+def nearest_simulated_evacuation_shelter(
+    latitude: float = Query(ge=-90, le=90),
+    longitude: float = Query(ge=-180, le=180),
+):
+    return nearest_simulated_shelter(latitude, longitude)
 
 
 @app.get("/api/v1/models/metrics", tags=["models"])

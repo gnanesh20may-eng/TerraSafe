@@ -216,6 +216,32 @@ def test_open_meteo_timeout_returns_explicit_demo_fallback(monkeypatch):
     assert result == {"status": "DEMO", "reason": "timeout"}
 
 
+def test_nearest_evacuation_shelter_is_simulated_and_straight_line(api_client):
+    response = api_client(
+        "GET", "/api/v1/evacuation?latitude=11.4&longitude=76.7"
+    )
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "SIMULATED"
+    assert result["feature_status"] == "SIMULATED"
+    assert result["nearest_shelter"]["shelter_id"] == "sim-shelter-03"
+    assert result["nearest_shelter"]["status"] == "SIMULATED"
+    assert result["distance_km"] > 0
+    assert result["distance_method"] == "straight-line Haversine distance"
+    assert result["route"] is None
+    assert result["route_status"] == "MISSING"
+    assert "not a real shelter" in result["notice"]
+
+    exact_location = api_client(
+        "GET", "/api/v1/evacuation?latitude=11.25&longitude=76.35"
+    ).json()
+    assert exact_location["nearest_shelter"]["shelter_id"] == "sim-shelter-01"
+    assert exact_location["distance_km"] == 0
+    assert api_client(
+        "GET", "/api/v1/evacuation?latitude=91&longitude=0"
+    ).status_code == 422
+
+
 def test_jwt_roles_lifecycle_mock_notifications_cap_and_audit(api_client):
     created = create_alert(api_client, latitude=11.4, longitude=76.7)
     assert created.status_code == 201

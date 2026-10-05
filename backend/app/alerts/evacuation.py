@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 SIMULATED_SHELTERS = (
@@ -27,6 +28,46 @@ SIMULATED_SHELTERS = (
         "status": "SIMULATED",
     },
 )
+
+
+def nearest_simulated_shelter(latitude: float, longitude: float) -> dict[str, Any]:
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        raise ValueError("latitude or longitude is outside WGS84 bounds")
+
+    earth_radius_km = 6371.0088
+    origin_latitude = math.radians(latitude)
+    origin_longitude = math.radians(longitude)
+
+    def distance_to(shelter: dict[str, Any]) -> float:
+        shelter_latitude = math.radians(shelter["latitude"])
+        shelter_longitude = math.radians(shelter["longitude"])
+        latitude_delta = shelter_latitude - origin_latitude
+        longitude_delta = shelter_longitude - origin_longitude
+        haversine = (
+            math.sin(latitude_delta / 2) ** 2
+            + math.cos(origin_latitude)
+            * math.cos(shelter_latitude)
+            * math.sin(longitude_delta / 2) ** 2
+        )
+        return 2 * earth_radius_km * math.asin(
+            math.sqrt(min(1.0, max(0.0, haversine)))
+        )
+
+    shelter = min(SIMULATED_SHELTERS, key=distance_to)
+    return {
+        "status": "SIMULATED",
+        "feature_status": "SIMULATED",
+        "origin": {"latitude": latitude, "longitude": longitude},
+        "nearest_shelter": shelter,
+        "distance_km": round(distance_to(shelter), 3),
+        "distance_method": "straight-line Haversine distance",
+        "route": None,
+        "route_status": "MISSING",
+        "notice": (
+            "The destination is a simulated placeholder, not a real shelter. "
+            "Distance is straight-line only; no navigable route is available."
+        ),
+    }
 
 
 class MockOpenRouteServiceAdapter:

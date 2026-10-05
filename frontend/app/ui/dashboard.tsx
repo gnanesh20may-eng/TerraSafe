@@ -46,6 +46,24 @@ type RiskResponse = {
   shelters: { status: "SIMULATED"; locations: ShelterPoint[]; notice: string };
 }
 
+type ScenarioResult = {
+  status: "SIMULATED";
+  risk_score: number;
+  risk_level: string;
+  method: string;
+  disclaimer: string;
+};
+
+type EvacuationResult = {
+  status: "SIMULATED";
+  feature_status: "SIMULATED";
+  nearest_shelter: ShelterPoint;
+  distance_km: number;
+  distance_method: string;
+  route_status: "MISSING";
+  notice: string;
+};
+
 type FeatureStatus =
   | "LIVE"
   | "DEMO"
@@ -80,6 +98,20 @@ const COPY: Record<Language, Record<string, string>> = {
     noAlerts: "No alert records returned by the API.",
     weatherAt: "Weather data timestamp",
     riskDisclaimer: "SIMULATED model and zone geometry; DEMO alert workflow. Not a warning.",
+    decisionTitle: "Decision support",
+    simulationTitle: "Rainfall what-if",
+    simulationIntro: "Explore a transparent scenario using the selected synthetic zone baseline.",
+    rainfallInput: "What-if rainfall (mm)",
+    durationInput: "Rain duration (hours)",
+    roadCutInput: "Include a road cut",
+    simulateButton: "Run simulated scenario",
+    shelterTitle: "Nearest placeholder shelter",
+    shelterIntro: "Uses the selected zone and placeholder points; this is not a destination recommendation.",
+    shelterButton: "Calculate straight-line distance",
+    noDecisionResult: "Run a scenario or distance calculation to see results.",
+    routeMissing: "Navigable route: MISSING",
+    simulationError: "Scenario simulation failed.",
+    evacuationError: "Shelter estimate failed.",
     language: "Language",
   },
   ta: {
@@ -106,6 +138,20 @@ const COPY: Record<Language, Record<string, string>> = {
     noAlerts: "API-யில் எச்சரிக்கை பதிவுகள் இல்லை.",
     weatherAt: "வானிலைத் தரவு நேரம்",
     riskDisclaimer: "உருவக மாதிரி மற்றும் மண்டலங்கள்; டெமோ எச்சரிக்கை நடைமுறை. அதிகாரப்பூர்வ எச்சரிக்கை அல்ல.",
+    decisionTitle: "முடிவு ஆதரவு",
+    simulationTitle: "மழைப்பொழிவு மாற்றுச் சூழல்",
+    simulationIntro: "தேர்ந்தெடுத்த உருவக மண்டலத்தின் அடிப்படையில் வெளிப்படையான சூழலை ஆராயுங்கள்.",
+    rainfallInput: "மாற்றுச் சூழல் மழை (மி.மீ.)",
+    durationInput: "மழை நீடிப்பு (மணி)",
+    roadCutInput: "சாலை வெட்டு சேர்க்கவும்",
+    simulateButton: "உருவக சூழலைக் கணக்கிடு",
+    shelterTitle: "அருகிலுள்ள மாதிரி தங்குமிடம்",
+    shelterIntro: "தேர்ந்தெடுத்த மண்டலம் மற்றும் மாதிரி இடங்களைப் பயன்படுத்துகிறது; இது தங்குமிடப் பரிந்துரை அல்ல.",
+    shelterButton: "நேர்கோட்டு தூரத்தைக் கணக்கிடு",
+    noDecisionResult: "முடிவைக் காண சூழல் அல்லது தூரத்தைக் கணக்கிடுங்கள்.",
+    routeMissing: "வழிசெலுத்தும் பாதை: இல்லை",
+    simulationError: "சூழல் உருவகப்படுத்தல் தோல்வியடைந்தது.",
+    evacuationError: "தங்குமிட மதிப்பீடு தோல்வியடைந்தது.",
     language: "மொழி",
   },
 };
@@ -141,8 +187,8 @@ const featureCards: {
   },
   {
     name: "Evacuation routes",
-    status: "MISSING",
-    detail: "No verified shelter dataset or directions are available.",
+    status: "SIMULATED",
+    detail: "Nearest placeholder and straight-line distance only; real routes are missing.",
   },
   {
     name: "RESCUE coordination",
@@ -192,6 +238,61 @@ function isAlertsResponse(value: unknown): value is AlertsResponse {
         typeof alert.status === "string" &&
         typeof alert.created_at === "string",
     )
+  );
+}
+
+function isShelterPoint(value: unknown): value is ShelterPoint {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "shelter_id" in value &&
+    "name" in value &&
+    "latitude" in value &&
+    "longitude" in value &&
+    "status" in value &&
+    typeof value.shelter_id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.latitude === "number" &&
+    typeof value.longitude === "number" &&
+    value.status === "SIMULATED"
+  );
+}
+
+function isScenarioResult(value: unknown): value is ScenarioResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    value.status === "SIMULATED" &&
+    "risk_score" in value &&
+    typeof value.risk_score === "number" &&
+    "risk_level" in value &&
+    typeof value.risk_level === "string" &&
+    "method" in value &&
+    typeof value.method === "string" &&
+    "disclaimer" in value &&
+    typeof value.disclaimer === "string"
+  );
+}
+
+function isEvacuationResult(value: unknown): value is EvacuationResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    value.status === "SIMULATED" &&
+    "feature_status" in value &&
+    value.feature_status === "SIMULATED" &&
+    "nearest_shelter" in value &&
+    isShelterPoint(value.nearest_shelter) &&
+    "distance_km" in value &&
+    typeof value.distance_km === "number" &&
+    "distance_method" in value &&
+    typeof value.distance_method === "string" &&
+    "route_status" in value &&
+    value.route_status === "MISSING" &&
+    "notice" in value &&
+    typeof value.notice === "string"
   );
 }
 
@@ -302,6 +403,13 @@ export function Dashboard() {
   const [operatorToken, setOperatorToken] = useState("");
   const [actionError, setActionError] = useState("");
   const [pendingAction, setPendingAction] = useState("");
+  const [whatIfRainfall, setWhatIfRainfall] = useState("0");
+  const [whatIfDuration, setWhatIfDuration] = useState("24");
+  const [includeRoadCut, setIncludeRoadCut] = useState(false);
+  const [scenarioResult, setScenarioResult] = useState<ScenarioResult | null>(null);
+  const [evacuationResult, setEvacuationResult] = useState<EvacuationResult | null>(null);
+  const [supportError, setSupportError] = useState("");
+  const [supportPending, setSupportPending] = useState("");
   const [loading, setLoading] = useState(true);
   const t = COPY[language];
 
@@ -393,6 +501,59 @@ export function Dashboard() {
       setActionError(errorMessage(error));
     } finally {
       setPendingAction("");
+    }
+  }
+
+  async function runScenario() {
+    if (!selectedZone) return;
+    setSupportError("");
+    setScenarioResult(null);
+    setSupportPending("scenario");
+    try {
+      const response = await fetch(`${apiBase}/api/v1/simulate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseline_score: selectedZone.risk_score,
+          rainfall_mm: Number(whatIfRainfall),
+          duration_hours: Number(whatIfDuration),
+          road_cut: includeRoadCut,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`/api/v1/simulate returned HTTP ${response.status}`);
+      }
+      const result: unknown = await response.json();
+      if (!isScenarioResult(result)) throw new Error(t.simulationError);
+      setScenarioResult(result);
+    } catch (error) {
+      setSupportError(errorMessage(error));
+    } finally {
+      setSupportPending("");
+    }
+  }
+
+  async function findNearestShelter() {
+    if (!selectedZone) return;
+    setSupportError("");
+    setEvacuationResult(null);
+    setSupportPending("evacuation");
+    try {
+      const query = new URLSearchParams({
+        latitude: String(selectedZone.latitude),
+        longitude: String(selectedZone.longitude),
+      });
+      const response = await fetch(`${apiBase}/api/v1/evacuation?${query}`);
+      if (!response.ok) {
+        throw new Error(`/api/v1/evacuation returned HTTP ${response.status}`);
+      }
+      const result: unknown = await response.json();
+      if (!isEvacuationResult(result)) throw new Error(t.evacuationError);
+      setEvacuationResult(result);
+    } catch (error) {
+      setSupportError(errorMessage(error));
+    } finally {
+      setSupportPending("");
     }
   }
 
@@ -561,7 +722,11 @@ export function Dashboard() {
                   showHeatmap={showHeatmap}
                   showZoneMarkers={showZoneMarkers}
                   showShelters={showShelters}
-                  onSelectZone={setSelectedZoneId}
+                  onSelectZone={(zoneId) => {
+                    setSelectedZoneId(zoneId);
+                    setScenarioResult(null);
+                    setEvacuationResult(null);
+                  }}
                 />
               ) : (
                 <div className="map-loading">Loading risk data…</div>
@@ -652,6 +817,104 @@ export function Dashboard() {
         <p className="records-note">
           {t.weatherAt}: {risk?.weather.data_timestamp ?? "unavailable"} ·{" "}
           <StatusTag status={risk?.weather.status ?? "MISSING"} />
+        </p>
+      </section>
+
+      <section className="section-block decision-section">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">WHAT-IF · PLACEHOLDER SHELTERS</p>
+            <h2>{t.decisionTitle}</h2>
+          </div>
+          <StatusTag status="SIMULATED" />
+        </div>
+        <div className="decision-grid">
+          <article className="decision-card">
+            <h3>{t.simulationTitle} <StatusTag status="SIMULATED" /></h3>
+            <p>{t.simulationIntro}</p>
+            <div className="decision-controls">
+              <label>
+                {t.rainfallInput}
+                <input
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="0.1"
+                  value={whatIfRainfall}
+                  onChange={(event) => setWhatIfRainfall(event.target.value)}
+                />
+              </label>
+              <label>
+                {t.durationInput}
+                <input
+                  type="number"
+                  min="0.1"
+                  max="720"
+                  step="0.1"
+                  value={whatIfDuration}
+                  onChange={(event) => setWhatIfDuration(event.target.value)}
+                />
+              </label>
+              <label className="decision-checkbox">
+                <input
+                  type="checkbox"
+                  checked={includeRoadCut}
+                  onChange={(event) => setIncludeRoadCut(event.target.checked)}
+                />
+                {t.roadCutInput}
+              </label>
+            </div>
+            <button
+              className="action-button"
+              disabled={!selectedZone || supportPending !== ""}
+              onClick={() => void runScenario()}
+            >
+              {supportPending === "scenario" ? "Working…" : t.simulateButton}
+            </button>
+            {scenarioResult ? (
+              <div className="decision-result" aria-live="polite">
+                <div className="drawer-tags">
+                  <StatusTag status={scenarioResult.status} />
+                  <strong>{scenarioResult.risk_score.toFixed(4)} · {scenarioResult.risk_level}</strong>
+                </div>
+                <p>{scenarioResult.method}</p>
+                <p>{scenarioResult.disclaimer}</p>
+              </div>
+            ) : (
+              <p className="decision-result">{t.noDecisionResult}</p>
+            )}
+          </article>
+          <article className="decision-card">
+            <h3>{t.shelterTitle} <StatusTag status="SIMULATED" /></h3>
+            <p>{t.shelterIntro}</p>
+            <p className="decision-origin">
+              {t.selected}: {selectedZone?.location ?? "unavailable"}
+            </p>
+            <button
+              className="action-button"
+              disabled={!selectedZone || supportPending !== ""}
+              onClick={() => void findNearestShelter()}
+            >
+              {supportPending === "evacuation" ? "Working…" : t.shelterButton}
+            </button>
+            {evacuationResult ? (
+              <div className="decision-result" aria-live="polite">
+                <div className="drawer-tags">
+                  <StatusTag status={evacuationResult.feature_status} />
+                  <strong>{evacuationResult.nearest_shelter.name}</strong>
+                </div>
+                <p>{evacuationResult.distance_km.toFixed(3)} km · {evacuationResult.distance_method}</p>
+                <p>{evacuationResult.notice}</p>
+                <StatusTag status={evacuationResult.route_status} />
+              </div>
+            ) : (
+              <p className="decision-result">{t.routeMissing}</p>
+            )}
+          </article>
+        </div>
+        {supportError && <p className="action-error" role="alert">{supportError}</p>}
+        <p className="records-note">
+          {t.routeMissing}. {t.riskDisclaimer}
         </p>
       </section>
 
