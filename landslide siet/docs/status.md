@@ -27,6 +27,7 @@ Last audited: 2026-10-05. This register describes the checked-out `landslide sie
 | Tests | LIVE (local test execution) | `pytest backend/tests -q`: 17 passed on 2026-10-05. Coverage is focused unit tests; no API integration/database/E2E tests. |
 | Frontend build | LIVE (local build execution) | `npm run build`: passed; six actual routes listed above. |
 | Frontend dependencies/security audit | NEEDS REVIEW | `npm install` reported 8 findings (1 moderate, 6 high, 1 critical). No forced fix was applied. |
+| Contributor setup and repository templates | LIVE (syntax-checked) | PowerShell and Bash setup scripts parse; README, onboarding, PR template, CODEOWNERS placeholder, issue-label guide, and CI lockfile/typecheck steps are present. Setup installs were not run by the syntax check. |
 | API/data fallback labels | DEMO | Static screens/data include demo content; consistent provenance labelling is incomplete. |
 
 ## Verified API Routes

@@ -34,7 +34,11 @@ jobs:
       - name: Install frontend deps
         run: |
           cd "landslide siet/frontend"
-          npm install
+          npm ci
+      - name: Type check frontend
+        run: |
+          cd "landslide siet/frontend"
+          npm run typecheck
       - name: Validate frontend build
         run: |
           cd "landslide siet/frontend"

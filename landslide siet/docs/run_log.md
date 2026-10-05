@@ -5,3 +5,4 @@ All timestamps are local PowerShell `Get-Date -Format o` output. Durations are w
 | Phase | Start | End | Result |
 |---|---|---|---|
 | 0 - Audit and baseline | 2026-10-05T18:51:29.3638694+05:30 | 2026-10-05T19:00:09.9209256+05:30 | Fixed malformed frontend manifest and TS module, added tests to two test modules, corrected ROC-AUC test expectation and bounded GIS zone scores. Backend 17 passed; frontend build and typecheck passed; CRLF-aware `git diff --check` clean. |
+| 1 - Team and repo hygiene | 2026-10-05T19:01:07.4195061+05:30 | 2026-10-05T19:02:43.3023027+05:30 | Added setup scripts, onboarding/contribution guides, PR template, CODEOWNERS placeholder, issue labels, `.gitattributes`, and CI `npm ci`/typecheck. Bash and PowerShell syntax checks passed; backend 17 passed; frontend typecheck/build passed. npm install previously reported 8 audit findings; no forced dependency changes made. |
