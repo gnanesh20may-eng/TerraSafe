@@ -14,7 +14,10 @@ that a live provider, device, or public-safety workflow has been validated.
 | Open-Meteo and USGS ingestion | SCAFFOLD | Opt-in HTTP adapters exist; no live provider request was made in this audit. |
 | Other NASA/IMD product ingestion | SCAFFOLD | Requires configured product-specific endpoints and normalization; no product data was downloaded. |
 | Dynamic risk and forecast helpers | DEMO | P2 rainfall, slope, trigger, and horizon calculations are experimental, not calibrated warnings or trained time-series forecasts. |
-| API service and routes | MISSING | No FastAPI application or route declarations are present in the tracked checkout. |
+| Data source health API | LIVE | `GET /api/v1/health/data-sources` returns registry status; only Open-Meteo Archive and USGS were probed live. |
+| Data registry and downloader | SCAFFOLD | 47 candidate sources catalogued; live downloading is implemented only for Open-Meteo Archive and USGS in Nilgiris. No dataset was downloaded as part of this phase. |
+| Data-quality report helpers | LIVE | Tested null, duplicate, label-balance, CRS declaration, coordinate range, and spatial-fold leakage reports; no external dataset was validated. |
+| Other API services and routes | MISSING | `/health`, risk scoring, SOS persistence, alert lifecycle, and rescue endpoints are not present in this checkout. |
 | Next.js dashboard and rescue page | MISSING | No frontend directory or npm build script is present. |
 | Alert persistence, lifecycle, and delivery | MISSING | No API alert service or database implementation is present. |
 | IoT firmware and sensor simulator | MISSING | No firmware or simulator source is present in tracked files. |
@@ -26,7 +29,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | --- | --- | --- |
 | P0 Audit | LIVE | Audited this checkout; backend tests pass. `npm run build` is unavailable because no build script/package manifest exists. Existing two test modules are populated (19 tests total), so no empty test files were found to fill. |
 | P1 Repository and onboarding | LIVE | Added contribution guidance, PR template, CODEOWNERS, cross-platform setup, onboarding, CRLF-aware attributes, and CI. Frontend build is conditional because this checkout has no frontend package. |
-| P2 Data registry and download tooling | SCAFFOLD | P2 ingestion adapters exist, but registry, regional bounds, downloader, source-health checks, and source-health API are not present. |
+| P2 Data registry and download tooling | LIVE | 47 candidate entries, 10 approximate region boxes, bounded downloader, source checks, quality helpers, and source-health endpoint added. Only two Nilgiris public endpoints are probed; GSI and access-controlled sources remain MANUAL/NEEDS_REVIEW. |
 | P3 ML notebooks and inference | SCAFFOLD | P1/P2 baseline helpers exist; requested notebooks, exported-model loading/fallback inference, and associated tests are not present. |
 | P4 Alerts and API | MISSING | No backend API, persistence, alert lifecycle, auth, or delivery service is present. |
 | P5 Dashboard | MISSING | No frontend is present. |

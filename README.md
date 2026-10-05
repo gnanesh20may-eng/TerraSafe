@@ -47,6 +47,13 @@ counterfactual, and PSI helpers are documented in `docs/dynamic-risk.md`.
 Thresholds and the trigger-based forecast are experimental, and no real
 provider feed or trained time-series model is implied.
 
+The source registry, health checker, and bounded Nilgiris downloader are
+described in [`docs/data_sources.md`](docs/data_sources.md). Health checks
+probe only Open-Meteo Archive and USGS; other source rows are MANUAL or
+NEEDS_REVIEW. The source API entry point is
+`python -m uvicorn backend.app.main:app --port 8000`; currently the only
+registered route is `GET /api/v1/health/data-sources`.
+
 ## Contributing
 
 See [`docs/onboarding.md`](docs/onboarding.md) for setup and contribution

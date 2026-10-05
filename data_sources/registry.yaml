@@ -1,0 +1,518 @@
+sources:
+  - id: nasa_global_landslide_catalog
+    name: NASA Global Landslide Catalog
+    category: landslide
+    url: https://data.nasa.gov/dataset/global-landslide-catalog-export
+    access: open_no_login
+    format: CSV
+    licence: needs_review
+    region: global
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/nasa_global_landslide_catalog.csv
+    status: NEEDS_REVIEW
+  - id: gsi_bhukosh
+    name: GSI Bhukosh
+    category: landslide
+    url: https://bhukosh.gsi.gov.in/
+    access: request_or_portal
+    format: GIS
+    licence: needs_review
+    region: India
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/gsi_bhukosh
+    status: MANUAL
+  - id: ndma_landslide_reports
+    name: NDMA landslide reports
+    category: landslide
+    url: https://ndma.gov.in/
+    access: public_reports
+    format: PDF
+    licence: needs_review
+    region: India
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/ndma_landslide_reports
+    status: NEEDS_REVIEW
+  - id: nrsc_bhuvan
+    name: NRSC Bhuvan thematic layers
+    category: landslide
+    url: https://bhuvan.nrsc.gov.in/
+    access: portal_or_request
+    format: GIS
+    licence: needs_review
+    region: India
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/nrsc_bhuvan
+    status: NEEDS_REVIEW
+  - id: wada_landslide_inventory
+    name: Wadia Institute landslide research
+    category: landslide
+    url: https://www.wihg.res.in/
+    access: institutional
+    format: research_data
+    licence: needs_review
+    region: Himalaya
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/wihg
+    status: MANUAL
+  - id: geological_survey_india_maps
+    name: Geological Survey of India geological maps
+    category: landslide
+    url: https://www.gsi.gov.in/
+    access: public_or_request
+    format: GIS
+    licence: needs_review
+    region: India
+    fallback: synthetic_geology
+    path: ml/data/raw/{region}/gsi_maps
+    status: NEEDS_REVIEW
+  - id: emdat_disasters
+    name: EM-DAT disaster events
+    category: landslide
+    url: https://www.emdat.be/
+    access: registration
+    format: CSV
+    licence: needs_review
+    region: global
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/emdat
+    status: MANUAL
+  - id: desinventar
+    name: DesInventar disaster inventory
+    category: landslide
+    url: https://www.desinventar.net/
+    access: public_portal
+    format: CSV
+    licence: needs_review
+    region: India
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/desinventar
+    status: NEEDS_REVIEW
+  - id: usgs_landslide_hazards
+    name: USGS landslide hazards data
+    category: landslide
+    url: https://www.usgs.gov/programs/landslide-hazards
+    access: open_no_login
+    format: GIS
+    licence: public_domain
+    region: global
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/usgs_landslides
+    status: NEEDS_REVIEW
+  - id: open_meteo_archive
+    name: Open-Meteo historical weather archive
+    category: meteorology
+    url: https://archive-api.open-meteo.com/v1/archive
+    access: open_no_login
+    format: JSON
+    licence: CC-BY-4.0
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/open_meteo_archive.json
+    status: NEEDS_REVIEW
+  - id: open_meteo_forecast
+    name: Open-Meteo forecast
+    category: meteorology
+    url: https://api.open-meteo.com/v1/forecast
+    access: open_no_login
+    format: JSON
+    licence: CC-BY-4.0
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/open_meteo_forecast.json
+    status: NEEDS_REVIEW
+  - id: open_meteo_ensemble
+    name: Open-Meteo ensemble forecast
+    category: meteorology
+    url: https://ensemble-api.open-meteo.com/v1/ensemble
+    access: open_no_login
+    format: JSON
+    licence: CC-BY-4.0
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/open_meteo_ensemble.json
+    status: NEEDS_REVIEW
+  - id: imd_rainfall
+    name: India Meteorological Department rainfall
+    category: meteorology
+    url: https://mausam.imd.gov.in/
+    access: portal_or_request
+    format: gridded_data
+    licence: needs_review
+    region: India
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/imd_rainfall
+    status: NEEDS_REVIEW
+  - id: era5_land
+    name: ERA5-Land reanalysis
+    category: meteorology
+    url: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land
+    access: account_and_api
+    format: GRIB
+    licence: Copernicus_C3S
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/era5_land
+    status: MANUAL
+  - id: nasa_power
+    name: NASA POWER meteorology
+    category: meteorology
+    url: https://power.larc.nasa.gov/
+    access: open_no_login
+    format: JSON
+    licence: NASA_data_policy
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/nasa_power
+    status: NEEDS_REVIEW
+  - id: gpm_imerg
+    name: NASA GPM IMERG precipitation
+    category: meteorology
+    url: https://gpm.nasa.gov/data/imerg
+    access: earthdata_account
+    format: HDF5
+    licence: NASA_data_policy
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/gpm_imerg
+    status: MANUAL
+  - id: chirps_rainfall
+    name: CHIRPS precipitation
+    category: meteorology
+    url: https://www.chc.ucsb.edu/data/chirps
+    access: open_no_login
+    format: GeoTIFF
+    licence: needs_review
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/chirps
+    status: NEEDS_REVIEW
+  - id: noaa_ghcn
+    name: NOAA Global Historical Climatology Network
+    category: meteorology
+    url: https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily
+    access: open_no_login
+    format: CSV
+    licence: public_domain
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/noaa_ghcn
+    status: NEEDS_REVIEW
+  - id: usgs_earthquakes
+    name: USGS FDSN earthquake events
+    category: ground
+    url: https://earthquake.usgs.gov/fdsnws/event/1/query
+    access: open_no_login
+    format: GeoJSON
+    licence: public_domain
+    region: global
+    fallback: no_event_assumption
+    path: ml/data/raw/{region}/usgs_earthquakes.geojson
+    status: NEEDS_REVIEW
+  - id: india_wr_is
+    name: India-WRIS water resources
+    category: sensors
+    url: https://indiawris.gov.in/
+    access: portal_or_request
+    format: API_or_CSV
+    licence: needs_review
+    region: India
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/india_wris
+    status: NEEDS_REVIEW
+  - id: cwc_gauges
+    name: Central Water Commission gauge observations
+    category: sensors
+    url: https://cwc.gov.in/
+    access: public_portal
+    format: API_or_CSV
+    licence: needs_review
+    region: India
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/cwc_gauges
+    status: NEEDS_REVIEW
+  - id: imd_aws
+    name: IMD automatic weather stations
+    category: sensors
+    url: https://mausam.imd.gov.in/
+    access: request_or_portal
+    format: station_data
+    licence: needs_review
+    region: India
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/imd_aws
+    status: MANUAL
+  - id: gsi_slope_sensors
+    name: GSI slope monitoring sensors
+    category: sensors
+    url: https://www.gsi.gov.in/
+    access: institutional
+    format: telemetry
+    licence: needs_review
+    region: India
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/gsi_slope_sensors
+    status: MANUAL
+  - id: openaq
+    name: OpenAQ air quality measurements
+    category: sensors
+    url: https://openaq.org/
+    access: API_key_may_be_required
+    format: JSON
+    licence: needs_review
+    region: global
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/openaq
+    status: NEEDS_REVIEW
+  - id: local_iot_sensors
+    name: Local landslide IoT sensor telemetry
+    category: sensors
+    url: https://example.invalid/local-sensor-gateway
+    access: operator_gateway
+    format: MQTT
+    licence: operator_owned
+    region: local
+    fallback: simulated_sensor_values
+    path: ml/data/raw/{region}/local_iot
+    status: MANUAL
+  - id: thingspeak_channels
+    name: ThingSpeak community sensor channels
+    category: sensors
+    url: https://thingspeak.com/
+    access: channel_dependent
+    format: JSON
+    licence: channel_dependent
+    region: global
+    fallback: no_sensor_readings
+    path: ml/data/raw/{region}/thingspeak
+    status: NEEDS_REVIEW
+  - id: sentinel_1
+    name: Copernicus Sentinel-1 SAR
+    category: satellite
+    url: https://dataspace.copernicus.eu/
+    access: account_required
+    format: SAFE
+    licence: Copernicus_terms
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/sentinel_1
+    status: MANUAL
+  - id: sentinel_2
+    name: Copernicus Sentinel-2 optical
+    category: satellite
+    url: https://dataspace.copernicus.eu/
+    access: account_required
+    format: SAFE
+    licence: Copernicus_terms
+    region: global
+    fallback: synthetic_ndvi
+    path: ml/data/raw/{region}/sentinel_2
+    status: MANUAL
+  - id: landsat
+    name: USGS Landsat Collection
+    category: satellite
+    url: https://landsatlook.usgs.gov/
+    access: account_or_public_metadata
+    format: GeoTIFF
+    licence: public_domain
+    region: global
+    fallback: synthetic_ndvi
+    path: ml/data/raw/{region}/landsat
+    status: NEEDS_REVIEW
+  - id: srtm_dem
+    name: NASA SRTM elevation
+    category: satellite
+    url: https://lpdaac.usgs.gov/products/srtmgl1v003/
+    access: earthdata_account
+    format: GeoTIFF
+    licence: NASA_data_policy
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/srtm
+    status: MANUAL
+  - id: copernicus_dem
+    name: Copernicus DEM
+    category: satellite
+    url: https://dataspace.copernicus.eu/
+    access: account_required
+    format: GeoTIFF
+    licence: Copernicus_terms
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/copernicus_dem
+    status: MANUAL
+  - id: alos_palsar
+    name: JAXA ALOS PALSAR
+    category: satellite
+    url: https://www.eorc.jaxa.jp/ALOS/en/dataset/
+    access: registration
+    format: GeoTIFF
+    licence: needs_review
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/alos
+    status: MANUAL
+  - id: soilgrids
+    name: ISRIC SoilGrids
+    category: satellite
+    url: https://soilgrids.org/
+    access: open_service
+    format: GeoTIFF_or_API
+    licence: CC-BY-4.0
+    region: global
+    fallback: synthetic_soil
+    path: ml/data/raw/{region}/soilgrids
+    status: NEEDS_REVIEW
+  - id: esa_worldcover
+    name: ESA WorldCover
+    category: satellite
+    url: https://esa-worldcover.org/
+    access: open_download
+    format: GeoTIFF
+    licence: CC-BY-4.0
+    region: global
+    fallback: synthetic_landcover
+    path: ml/data/raw/{region}/worldcover
+    status: NEEDS_REVIEW
+  - id: modis_ndvi
+    name: NASA MODIS vegetation indices
+    category: satellite
+    url: https://modis.gsfc.nasa.gov/data/
+    access: earthdata_account
+    format: HDF
+    licence: NASA_data_policy
+    region: global
+    fallback: synthetic_ndvi
+    path: ml/data/raw/{region}/modis_ndvi
+    status: MANUAL
+  - id: firms_active_fires
+    name: NASA FIRMS active fire detections
+    category: satellite
+    url: https://firms.modaps.eosdis.nasa.gov/
+    access: MAP_KEY
+    format: CSV
+    licence: NASA_data_policy
+    region: global
+    fallback: no_fire_readings
+    path: ml/data/raw/{region}/firms
+    status: MANUAL
+  - id: smap_soil_moisture
+    name: NASA SMAP soil moisture
+    category: satellite
+    url: https://nsidc.org/data/smap
+    access: earthdata_account
+    format: HDF5
+    licence: NASA_data_policy
+    region: global
+    fallback: synthetic_soil_moisture
+    path: ml/data/raw/{region}/smap
+    status: MANUAL
+  - id: gpm_precipitation
+    name: NASA GPM precipitation
+    category: satellite
+    url: https://gpm.nasa.gov/data
+    access: earthdata_account
+    format: HDF5
+    licence: NASA_data_policy
+    region: global
+    fallback: labeled_mock_weather
+    path: ml/data/raw/{region}/gpm
+    status: MANUAL
+  - id: earthdata_landslide_products
+    name: NASA Earthdata landslide products
+    category: satellite
+    url: https://search.earthdata.nasa.gov/
+    access: earthdata_account
+    format: product_dependent
+    licence: product_dependent
+    region: global
+    fallback: synthetic_landslide_inventory
+    path: ml/data/raw/{region}/earthdata_landslide
+    status: MANUAL
+  - id: esa_worlddem
+    name: ESA WorldDEM
+    category: satellite
+    url: https://earth.esa.int/eogateway/
+    access: registration_or_licence
+    format: GeoTIFF
+    licence: needs_review
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/worlddem
+    status: NEEDS_REVIEW
+  - id: geonames
+    name: GeoNames place names
+    category: ground
+    url: https://www.geonames.org/
+    access: open_download
+    format: TXT
+    licence: CC-BY-4.0
+    region: global
+    fallback: no_place_names
+    path: ml/data/raw/{region}/geonames
+    status: NEEDS_REVIEW
+  - id: openstreetmap
+    name: OpenStreetMap roads and waterways
+    category: ground
+    url: https://www.openstreetmap.org/
+    access: open_with_usage_policy
+    format: PBF_or_API
+    licence: ODbL
+    region: global
+    fallback: synthetic_roads_streams
+    path: ml/data/raw/{region}/openstreetmap
+    status: NEEDS_REVIEW
+  - id: bhuvan_lulc
+    name: Bhuvan land-use land-cover
+    category: satellite
+    url: https://bhuvan.nrsc.gov.in/
+    access: portal_or_request
+    format: raster
+    licence: needs_review
+    region: India
+    fallback: synthetic_landcover
+    path: ml/data/raw/{region}/bhuvan_lulc
+    status: NEEDS_REVIEW
+  - id: world_bank_disaster
+    name: World Bank disaster risk indicators
+    category: landslide
+    url: https://climateknowledgeportal.worldbank.org/
+    access: open_portal
+    format: API_or_CSV
+    licence: needs_review
+    region: global
+    fallback: no_external_indicators
+    path: ml/data/raw/{region}/world_bank_disaster
+    status: NEEDS_REVIEW
+  - id: reliefweb_disasters
+    name: ReliefWeb disaster reports
+    category: landslide
+    url: https://reliefweb.int/
+    access: public_API
+    format: JSON
+    licence: needs_review
+    region: global
+    fallback: no_external_reports
+    path: ml/data/raw/{region}/reliefweb
+    status: NEEDS_REVIEW
+  - id: gdacs_events
+    name: Global Disaster Alert and Coordination System
+    category: landslide
+    url: https://www.gdacs.org/
+    access: open_feed
+    format: GeoJSON
+    licence: needs_review
+    region: global
+    fallback: no_external_events
+    path: ml/data/raw/{region}/gdacs
+    status: NEEDS_REVIEW
+  - id: copernicus_emergency
+    name: Copernicus Emergency Management Service
+    category: satellite
+    url: https://emergency.copernicus.eu/
+    access: public_products
+    format: raster_or_vector
+    licence: product_dependent
+    region: global
+    fallback: synthetic_terrain
+    path: ml/data/raw/{region}/copernicus_emergency
+    status: NEEDS_REVIEW

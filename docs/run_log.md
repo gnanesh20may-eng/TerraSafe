@@ -31,3 +31,27 @@
   exists in this checkout, so no frontend build is claimed.
 - Safety labels and official-warning disclaimer are included in onboarding
   and PR checklist.
+
+## P2 — data registry and ingestion
+
+- Timestamp (`Get-Date`): 2026-10-05T20:09:50+05:30
+- Added a 47-entry candidate-source registry and 10 approximate search boxes.
+- Added a bounded downloader with dry-run, resume, mock mode, retries,
+  checksums, and a 200 MiB limit. Live downloaders are limited to Open-Meteo
+  historical weather and USGS earthquakes for Nilgiris; no dataset was
+  downloaded in this phase.
+- Ran `scripts/check_sources.py --region Nilgiris` against the two supported
+  open endpoints. Observed: `WORKING open_meteo_archive: HTTP 200; JSON object
+  response received.` and `WORKING usgs_earthquakes: HTTP 200; JSON object
+  response received.` Other sources are documented as MANUAL or
+  NEEDS_REVIEW; see `docs/data_health.md`.
+- Added and tested `/api/v1/health/data-sources` and observation-quality
+  helpers for CRS status, coordinate ranges, nulls, duplicates, label balance,
+  and spatial group/fold leakage.
+- Backend tests: **28 passed in 4.69s**. Downloader dry-run listed only the
+  two supported Nilgiris sources.
+- NASA Global Landslide Catalog direct-export availability and reuse terms
+  remain NEEDS_REVIEW; no login, captcha, or authentication was attempted.
+- Completion timestamp (`Get-Date`): 2026-10-05T20:21:53+05:30.
+- Final P2 backend gate: **28 passed in 4.97s**; Python compileall and Git
+  whitespace checks passed.
