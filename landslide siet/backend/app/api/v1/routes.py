@@ -1,22 +1,25 @@
 from __future__ import annotations
 
+from backend.app.gis.risk_zones import RiskSignals, calculate_risk_score
 from backend.app.providers.base import LocationRef
-from backend.app.providers.weather import DemoWeatherProvider
-from backend.app.providers.terrain import DemoTerrainProvider
-from backend.app.providers.satellite import DemoSatelliteProvider
+from backend.app.services.environment_service import environment_service
 
 
-class EnvironmentService:
-    def __init__(self) -> None:
-        self.weather_provider = DemoWeatherProvider()
-        self.terrain_provider = DemoTerrainProvider()
-        self.satellite_provider = DemoSatelliteProvider()
-
-    def get_environment(self, location: LocationRef) -> dict:
-        weather = self.weather_provider.get_current_weather(location)
-        terrain = self.terrain_provider.get_terrain_features(location)
-        satellite = self.satellite_provider.get_satellite_observation(location)
-
+class RiskService:
+    def evaluate_location(self, location: LocationRef) -> dict:
+        environment = environment_service.get_environment(location)
+        weather = environment["weather"]
+        terrain = environment["terrain"]
+        signals = RiskSignals(
+            rainfall_24h_mm=float(weather["rainfall_24h_mm"]),
+            rainfall_7d_mm=float(weather.get("rainfall_7d_mm", 0.0)),
+            soil_moisture_pct=float(weather["soil_moisture_pct"]),
+            slope_deg=float(terrain["slope_deg"]),
+            ndvi=float(terrain.get("ndvi", 0.5)),
+            elevation_m=float(terrain["elevation_m"]),
+            historical_landslides_nearby=1.0 if location.id in {"coonor", "ooty"} else 0.0,
+        )
+        result = calculate_risk_score(signals)
         return {
             "location": {
                 "id": location.id,
@@ -25,32 +28,25 @@ class EnvironmentService:
                 "longitude": location.longitude,
                 "admin_region": location.admin_region,
             },
-            "weather": {
-                "rainfall_24h_mm": weather.rainfall_24h_mm,
-                "rainfall_7d_mm": weather.rainfall_7d_mm,
-                "soil_moisture_pct": weather.soil_moisture_pct,
-                "wind_speed_kmh": weather.wind_speed_kmh,
-                "temperature_c": weather.temperature_c,
-                "source": weather.source,
+            "risk": {
+                "score": result["score"],
+                "level": result["level"],
+                "trend": "INCREASING" if result["score"] >= 50 else "STABLE",
             },
-            "terrain": {
-                "elevation_m": terrain.elevation_m,
-                "slope_deg": terrain.slope_deg,
-                "curvature": terrain.curvature,
-                "ndvi": terrain.ndvi,
-                "land_cover": terrain.land_cover,
-                "source": terrain.source,
+            "confidence": {"available": True, "value": 0.8},
+            "environment": environment["weather"],
+            "terrain": environment["terrain"],
+            "contributors": [
+                {"factor": "Rainfall", "impact": "HIGH" if weather["rainfall_24h_mm"] >= 30 else "MEDIUM", "direction": "INCREASE"},
+                {"factor": "Soil Moisture", "impact": "HIGH" if weather["soil_moisture_pct"] >= 60 else "MEDIUM", "direction": "INCREASE"},
+                {"factor": "Slope", "impact": "HIGH" if terrain["slope_deg"] >= 25 else "MEDIUM", "direction": "INCREASE"},
+            ],
+            "recommendation": {
+                "severity": result["level"],
+                "message": "Conditions are being monitored. Follow official local guidance and avoid steep vulnerable routes unless necessary.",
             },
-            "satellite": {
-                "cloud_cover_pct": satellite.cloud_cover_pct,
-                "ndvi": satellite.ndvi,
-                "ndwi": satellite.ndwi,
-                "land_cover": satellite.land_cover,
-                "source": satellite.source,
-            },
-            "last_updated": "2026-10-05T12:00:00Z",
-            "data_status": "DEMO DATA",
+            "timestamp": "2026-10-05T12:00:00Z",
         }
 
 
-environment_service = EnvironmentService()
+risk_service = RiskService()
