@@ -11,7 +11,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | --- | --- | --- |
 | Susceptibility training pipeline | SIMULATED | P1 deterministic synthetic Nilgiris data and spatial cross-validation; metrics are not real-world performance. |
 | Ingestion fixtures | SIMULATED | P2 provider adapters supply clearly marked local mock fixtures. |
-| Open-Meteo and USGS ingestion | SCAFFOLD | Opt-in HTTP adapters exist; endpoint probes returned HTTP 200 JSON for Nilgiris, but no weather or earthquake dataset was downloaded. |
+| Open-Meteo and USGS ingestion | LIVE | Open-Meteo forecast weather fetch returned precipitation and soil-moisture observations during P5b verification; USGS endpoint probes previously returned HTTP 200. No dataset was downloaded. |
 | Other NASA/IMD product ingestion | SCAFFOLD | Requires configured product-specific endpoints and normalization; no product data was downloaded. |
 | Dynamic risk and forecast helpers | DEMO | P2 rainfall, slope, trigger, and horizon calculations are experimental, not calibrated warnings or trained time-series forecasts. |
 | Model inference fallback | SIMULATED | Inference fits Logistic Regression on synthetic data when no trusted local artifact exists; output is not an operational prediction. |
@@ -21,7 +21,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | Data registry and downloader | SCAFFOLD | 47 candidate sources catalogued; live downloading is implemented only for Open-Meteo Archive and USGS in Nilgiris. No dataset was downloaded as part of this phase. |
 | Data-quality report helpers | LIVE | Tested null, duplicate, label-balance, CRS declaration, coordinate range, and spatial-fold leakage reports; no external dataset was validated. |
 | FastAPI service and health | LIVE | `/health` checks the configured database; data-source health is exposed at `/api/v1/health/data-sources`. Local API tests pass; this is not a hosted service. |
-| Risk query | SIMULATED | Nilgiris uses synthetic pilot inputs; other locations return MISSING. This is not a warning. |
+| Risk query | DEMO | `GET /api/v1/risk` uses live Open-Meteo rainfall/soil-moisture data when available, but risk zones and scores are generated from synthetic pilot geometry and are not calibrated warnings. Weather-provider failures use an explicit DEMO fallback. |
 | Alert persistence and lifecycle | DEMO | SQLAlchemy persistence, role-checked lifecycle, deduplication, hysteresis, request-triggered escalation, and hash-chain audit are implemented and tested. Data and policy are not operationally validated. |
 | JWT role authorization | LIVE | Short-lived HS256 tokens use `JWT_SECRET` from the environment; protected writes and SOS reads are tested. No production identity provider is configured. |
 | Notification channels | DEMO | Web push, SMS, WhatsApp, email, and voice return mock results only; no provider adapter sends messages. |
@@ -29,13 +29,14 @@ that a live provider, device, or public-safety workflow has been validated.
 | SOS intake | DEMO | `/sos` stores a request and omits phone from its create response; it does not dispatch emergency services. Listing is role-protected. |
 | SMS inbound RISK query | DEMO | `/sms/inbound` performs a local alert lookup only; it does not connect to an SMS provider. |
 | Evacuation destination and routing | MISSING | No verified shelter dataset or validated route service is configured; no locations or directions are fabricated. |
+| Map shelter layer | SIMULATED | Map contains explicit placeholder shelters; they are not real evacuation destinations. |
 | Scenario simulation | SIMULATED | `/api/v1/simulate` returns a transparent, uncalibrated what-if index. |
 | Model metrics API | MISSING | No generated evaluation file exists in this checkout. |
 | Rescue endpoint | SCAFFOLD | `/rescue` is a placeholder and is not a dispatch or rescue coordination service. |
-| Next.js dashboard | DEMO | App Router dashboard at `http://localhost:3001` shows live API/database status when reachable, actual alert records, and explicit capability labels. No map, offline mode, alert creation, or real rescue workflow is provided. |
+| Next.js dashboard | DEMO | App Router dashboard at `http://localhost:3001` shows live API/database status when reachable, actual alert records, Leaflet map, generated zone overlays, layer toggles, zone explanations, seven-day rainfall trend, and alert lifecycle controls. Risk overlays are DEMO; shelters are SIMULATED. |
 | Next.js rescue page | MISSING | No separate rescue page or dispatch workflow exists; the dashboard marks RESCUE coordination SCAFFOLD. |
 | IoT firmware and sensor simulator | MISSING | No firmware or simulator source is present in tracked files. |
-| Automated backend checks | LIVE | Latest full local run completed with 45 passed. This is code-test evidence, not field validation. |
+| Automated backend checks | LIVE | Latest full local run completed with 49 passed. This is code-test evidence, not field validation. |
 
 ## Phase tracker
 
@@ -47,6 +48,8 @@ that a live provider, device, or public-safety workflow has been validated.
 | P3 ML notebooks and inference | SIMULATED | Four NOT RUN notebook scaffolds, NumPy Logistic fallback for blocked sklearn linear DLL, hybrid inference, uncertainty placeholders, adaptive-zone demo thresholds, and model checksum tooling added. No real evaluation, trained forecast model, or trusted export is available. |
 | P4 Alerts and API | DEMO | FastAPI routes, SQLite/PostgreSQL persistence models, Alembic migration, JWT roles, lifecycle, dedupe/hysteresis, request-triggered escalation, mock channel adapters, CAP export, SOS intake, SMS query, simulation, and audit verification are implemented. 45 backend tests pass. No notification sends, real warning, shelter data, or dispatch is claimed. |
 | P5 Dashboard | DEMO | Next.js dashboard added with honest status cards, API health/alert reads, explicit backend errors, responsive layout, and no fabricated incidents. `npm run build` and `npm run typecheck` pass; a separate rescue page, field workflows, and map are not implemented. |
+| P5b Map dashboard | DEMO | Leaflet dashboard, Open-Meteo live weather with five-second DEMO fallback, synthetic risk zones, SIMULATED shelter placeholders, bilingual interface strings, alert lifecycle controls, and seven-day observed rainfall chart implemented. Full backend tests (49), frontend typecheck, and production build pass. |
+| P5c Decision support | SIMULATED | Existing what-if scenario endpoint retained; nearest-shelter straight-line estimate and UI are not implemented. |
 | P6 Offline and IoT | MISSING | No PWA, local queue, device firmware, or sensor simulator is present. |
 | P7 Rescue | MISSING | No rescue service or rescue UI is present in tracked sources. |
 | P8 Documentation and release gate | SCAFFOLD | P1/P2 model and dynamic-risk notes exist; requested architecture, API, offline, privacy, rescue, evaluation, pitch, demo, and final gate remain outstanding. |

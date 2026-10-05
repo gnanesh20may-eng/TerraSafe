@@ -1,6 +1,6 @@
 import asyncio
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import httpx
 import pytest
@@ -8,8 +8,13 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from backend.app.database import Base, get_db
+from backend.app import main as main_module
 from backend.app.main import app
 from backend.app.models import Alert, AlertAudit
+from backend.app.risk import (
+    OPEN_METEO_TIMEOUT_SECONDS,
+    fetch_open_meteo_weather,
+)
 from backend.app.security import create_access_token
 
 TEST_SECRET = "test-only-secret-value-that-is-at-least-32-bytes"
@@ -92,6 +97,123 @@ def test_health_and_public_alert_reads(api_client):
     assert api_client("GET", "/api/v1/alerts").status_code == 200
     assert api_client("GET", f"/api/v1/alerts/{alert_id}").status_code == 200
     assert api_client("GET", "/api/v1/alerts?limit=0").status_code == 422
+
+
+def test_risk_map_returns_nine_simulated_zones_with_live_weather(api_client, monkeypatch):
+    async def live_weather(*, latitude, longitude):
+        assert (latitude, longitude) == (11.35, 76.7)
+        return {
+            "status": "LIVE",
+            "reason": None,
+            "provider": "Open-Meteo Forecast API",
+            "fetched_at": "2026-10-05T12:00:00+00:00",
+            "data_timestamp": "2026-10-05T11:00:00+00:00",
+            "precipitation_mm": 2.5,
+            "soil_moisture_fraction": 0.4,
+            "observations": [],
+            "seven_day_trend": [
+                {"date": f"2026-10-0{day}", "precipitation_mm": float(day)}
+                for day in range(1, 8)
+            ],
+        }
+
+    monkeypatch.setattr(main_module, "fetch_open_meteo_weather", live_weather)
+    response = api_client("GET", "/api/v1/risk?location=Nilgiris")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "DEMO"
+    assert result["weather"]["status"] == "LIVE"
+    assert result["weather"]["precipitation_mm"] == 2.5
+    assert len(result["weather"]["seven_day_trend"]) == 7
+    assert result["zone_geometry_status"] == "SIMULATED"
+    assert len(result["zones"]) == 9
+    assert {zone["risk_status"] for zone in result["zones"]} == {"SIMULATED"}
+    assert {zone["terrain_status"] for zone in result["zones"]} == {"SIMULATED"}
+    assert all(zone["top_factors"] and zone["why"] for zone in result["zones"])
+
+
+def test_risk_map_demo_fallback_has_no_fabricated_weather(api_client, monkeypatch):
+    async def timed_out_weather(*, latitude, longitude):
+        return {"status": "DEMO", "reason": "timeout"}
+
+    monkeypatch.setattr(main_module, "fetch_open_meteo_weather", timed_out_weather)
+    response = api_client("GET", "/api/v1/risk")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["weather"]["status"] == "DEMO"
+    assert result["weather"]["reason"] == "timeout"
+    assert result["weather"]["precipitation_mm"] is None
+    assert result["weather"]["soil_moisture_fraction"] is None
+    assert result["weather"]["seven_day_trend"] is None
+    assert len(result["zones"]) == 9
+    assert {zone["weather_status"] for zone in result["zones"]} == {"DEMO"}
+
+
+def test_open_meteo_client_has_five_second_timeout_and_parses_real_fields(monkeypatch):
+    current = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    daily_start = date.today() - timedelta(days=7)
+    payload = {
+        "hourly": {
+            "time": [(current - timedelta(hours=1)).isoformat()],
+            "precipitation": [3.25],
+            "soil_moisture_0_to_7cm": [0.31],
+        },
+        "daily": {
+            "time": [
+                (daily_start + timedelta(days=day)).isoformat()
+                for day in range(8)
+            ],
+            "precipitation_sum": [float(day) for day in range(8)],
+        },
+    }
+
+    class MockClient:
+        def __init__(self, *, timeout):
+            assert timeout.connect == OPEN_METEO_TIMEOUT_SECONDS
+            assert timeout.read == OPEN_METEO_TIMEOUT_SECONDS
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return None
+
+        async def get(self, url, *, params):
+            assert url == "https://api.open-meteo.com/v1/forecast"
+            assert params["past_days"] == 7
+            return httpx.Response(
+                200,
+                json=payload,
+                request=httpx.Request("GET", url),
+            )
+
+    monkeypatch.setattr("backend.app.risk.httpx.AsyncClient", MockClient)
+    result = asyncio.run(fetch_open_meteo_weather(11.35, 76.7))
+    assert result["status"] == "LIVE"
+    assert result["precipitation_mm"] == 3.25
+    assert result["soil_moisture_fraction"] == 0.31
+    assert len(result["seven_day_trend"]) == 7
+
+
+def test_open_meteo_timeout_returns_explicit_demo_fallback(monkeypatch):
+    class TimeoutClient:
+        def __init__(self, *, timeout):
+            assert timeout.read == OPEN_METEO_TIMEOUT_SECONDS
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_):
+            return None
+
+        async def get(self, url, *, params):
+            raise httpx.ConnectTimeout(
+                "simulated timeout", request=httpx.Request("GET", url)
+            )
+
+    monkeypatch.setattr("backend.app.risk.httpx.AsyncClient", TimeoutClient)
+    result = asyncio.run(fetch_open_meteo_weather(11.35, 76.7))
+    assert result == {"status": "DEMO", "reason": "timeout"}
 
 
 def test_jwt_roles_lifecycle_mock_notifications_cap_and_audit(api_client):

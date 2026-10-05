@@ -1,14 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { RiskZone, ShelterPoint } from "./risk-map";
+
+const RiskMapView = dynamic(
+  () => import("./risk-map").then((module) => module.RiskMap),
+  { ssr: false, loading: () => <div className="map-loading">Loading map…</div> },
+);
 
 type AlertRecord = {
   id: string;
+  zone_id: string;
   location: string;
   risk_level: string;
+  risk_score: number;
   status: string;
   created_at: string;
-  feature_status: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type HealthResponse = {
@@ -20,12 +30,85 @@ type AlertsResponse = {
   alerts: AlertRecord[];
 };
 
+type RiskResponse = {
+  status: string;
+  weather: {
+    status: "LIVE" | "DEMO" | "MISSING";
+    reason: string | null;
+    provider: string | null;
+    fetched_at: string | null;
+    data_timestamp: string | null;
+    precipitation_mm: number | null;
+    soil_moisture_fraction: number | null;
+    seven_day_trend: { date: string; precipitation_mm: number | null }[] | null;
+  };
+  zones: RiskZone[];
+  shelters: { status: "SIMULATED"; locations: ShelterPoint[]; notice: string };
+}
+
 type FeatureStatus =
   | "LIVE"
   | "DEMO"
   | "SIMULATED"
   | "SCAFFOLD"
   | "MISSING";
+
+type Language = "en" | "ta";
+
+const COPY: Record<Language, Record<string, string>> = {
+  en: {
+    mapTitle: "Nilgiris risk zones",
+    mapIntro: "Regional Open-Meteo weather is shared across simulated zones.",
+    heatmap: "Risk heatmap",
+    zones: "Zone markers",
+    shelters: "Shelters",
+    trendTitle: "7-day rainfall trend",
+    trendMissing: "No verified seven-day trend is available; no sample values are shown.",
+    selected: "Selected zone",
+    score: "Risk index",
+    factors: "Top model factors",
+    why: "Why this score",
+    token: "Local operator token",
+    tokenHint: "Token is used only in memory and is not saved.",
+    createAlert: "Create demo alert",
+    lifecycle: "Prototype alert actions",
+    approve: "Approve",
+    send: "Send (mock only)",
+    delivered: "Mark delivered",
+    acknowledge: "Acknowledge",
+    resolve: "Resolve",
+    noAlerts: "No alert records returned by the API.",
+    weatherAt: "Weather data timestamp",
+    riskDisclaimer: "SIMULATED model and zone geometry; DEMO alert workflow. Not a warning.",
+    language: "Language",
+  },
+  ta: {
+    mapTitle: "நீலகிரி இடர் மண்டலங்கள்",
+    mapIntro: "Open-Meteo வானிலைத் தரவு உருவக மண்டலங்களுக்கு பொதுவாகப் பயன்படுத்தப்படுகிறது.",
+    heatmap: "இடர் வெப்ப வரைபடம்",
+    zones: "மண்டலக் குறியீடுகள்",
+    shelters: "தங்குமிடங்கள்",
+    trendTitle: "7 நாள் மழைப்பொழிவு போக்கு",
+    trendMissing: "சரிபார்க்கப்பட்ட ஏழு நாள் போக்கு இல்லை; மாதிரி மதிப்புகள் காட்டப்படவில்லை.",
+    selected: "தேர்ந்தெடுத்த மண்டலம்",
+    score: "இடர் குறியீடு",
+    factors: "மாதிரியின் முக்கிய காரணிகள்",
+    why: "இந்த மதிப்புக்கான விளக்கம்",
+    token: "உள்ளூர் இயக்குநர் டோக்கன்",
+    tokenHint: "டோக்கன் நினைவகத்தில் மட்டும் பயன்படுத்தப்படும்; சேமிக்கப்படாது.",
+    createAlert: "டெமோ எச்சரிக்கை உருவாக்கு",
+    lifecycle: "மாதிரி எச்சரிக்கை செயல்கள்",
+    approve: "ஒப்புதல்",
+    send: "அனுப்பு (போலி மட்டும்)",
+    delivered: "வழங்கியதாகக் குறி",
+    acknowledge: "பெற்றதை உறுதிப்படுத்து",
+    resolve: "தீர்வு செய்",
+    noAlerts: "API-யில் எச்சரிக்கை பதிவுகள் இல்லை.",
+    weatherAt: "வானிலைத் தரவு நேரம்",
+    riskDisclaimer: "உருவக மாதிரி மற்றும் மண்டலங்கள்; டெமோ எச்சரிக்கை நடைமுறை. அதிகாரப்பூர்வ எச்சரிக்கை அல்ல.",
+    language: "மொழி",
+  },
+};
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "") ??
@@ -97,15 +180,90 @@ function isAlertsResponse(value: unknown): value is AlertsResponse {
         "id" in alert &&
         "location" in alert &&
         "risk_level" in alert &&
+        "risk_score" in alert &&
+        "zone_id" in alert &&
         "status" in alert &&
         "created_at" in alert &&
         typeof alert.id === "string" &&
         typeof alert.location === "string" &&
         typeof alert.risk_level === "string" &&
+        typeof alert.risk_score === "number" &&
+        typeof alert.zone_id === "string" &&
         typeof alert.status === "string" &&
         typeof alert.created_at === "string",
     )
   );
+}
+
+function isRiskZone(value: unknown): value is RiskZone {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "zone_id" in value &&
+    "location" in value &&
+    "latitude" in value &&
+    "longitude" in value &&
+    "bounds" in value &&
+    "risk_score" in value &&
+    "risk_level" in value &&
+    "risk_status" in value &&
+    "weather_status" in value &&
+    "terrain_status" in value &&
+    "top_factors" in value &&
+    "why" in value &&
+    typeof value.zone_id === "string" &&
+    typeof value.location === "string" &&
+    typeof value.latitude === "number" &&
+    typeof value.longitude === "number" &&
+    Array.isArray(value.bounds) &&
+    value.bounds.length === 4 &&
+    value.bounds.every((coordinate) => typeof coordinate === "number") &&
+    typeof value.risk_score === "number" &&
+    typeof value.risk_level === "string" &&
+    (value.risk_status === "SIMULATED" || value.risk_status === "DEMO") &&
+    (value.weather_status === "LIVE" || value.weather_status === "DEMO") &&
+    value.terrain_status === "SIMULATED" &&
+    Array.isArray(value.top_factors) &&
+    typeof value.why === "string"
+  );
+}
+
+function isRiskResponse(value: unknown): value is RiskResponse {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("status" in value) ||
+    !("weather" in value) ||
+    !("zones" in value) ||
+    !("shelters" in value) ||
+    typeof value.status !== "string" ||
+    !Array.isArray(value.zones) ||
+    !value.zones.every(isRiskZone) ||
+    typeof value.weather !== "object" ||
+    value.weather === null ||
+    typeof value.shelters !== "object" ||
+    value.shelters === null ||
+    !("status" in value.weather) ||
+    !("reason" in value.weather) ||
+    !("provider" in value.weather) ||
+    !("fetched_at" in value.weather) ||
+    !("data_timestamp" in value.weather) ||
+    !("precipitation_mm" in value.weather) ||
+    !("soil_moisture_fraction" in value.weather) ||
+    !("seven_day_trend" in value.weather) ||
+    !("status" in value.shelters) ||
+    !("locations" in value.shelters) ||
+    !("notice" in value.shelters) ||
+    (value.weather.status !== "LIVE" &&
+      value.weather.status !== "DEMO" &&
+      value.weather.status !== "MISSING") ||
+    value.shelters.status !== "SIMULATED" ||
+    !Array.isArray(value.shelters.locations) ||
+    typeof value.shelters.notice !== "string"
+  ) {
+    return false;
+  }
+  return true;
 }
 
 async function getJson(path: string): Promise<unknown> {
@@ -132,15 +290,27 @@ function formatTimestamp(value: string): string {
 export function Dashboard() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [alerts, setAlerts] = useState<AlertRecord[]>([]);
+  const [risk, setRisk] = useState<RiskResponse | null>(null);
   const [healthError, setHealthError] = useState("");
   const [alertsError, setAlertsError] = useState("");
+  const [riskError, setRiskError] = useState("");
+  const [selectedZoneId, setSelectedZoneId] = useState("");
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showZoneMarkers, setShowZoneMarkers] = useState(true);
+  const [showShelters, setShowShelters] = useState(false);
+  const [language, setLanguage] = useState<Language>("en");
+  const [operatorToken, setOperatorToken] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [pendingAction, setPendingAction] = useState("");
   const [loading, setLoading] = useState(true);
+  const t = COPY[language];
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const [healthResult, alertsResult] = await Promise.allSettled([
+    const [healthResult, alertsResult, riskResult] = await Promise.allSettled([
       getJson("/health"),
       getJson("/api/v1/alerts"),
+      getJson("/api/v1/risk?location=Nilgiris"),
     ]);
 
     if (healthResult.status === "fulfilled" && isHealthResponse(healthResult.value)) {
@@ -166,6 +336,23 @@ export function Dashboard() {
           : "The API returned an unexpected alert response.",
       );
     }
+    if (riskResult.status === "fulfilled" && isRiskResponse(riskResult.value)) {
+      const riskData = riskResult.value;
+      setRisk(riskData);
+      setRiskError("");
+      setSelectedZoneId((current) =>
+        riskData.zones.some((zone) => zone.zone_id === current)
+          ? current
+          : riskData.zones[0]?.zone_id ?? "",
+      );
+    } else {
+      setRisk(null);
+      setRiskError(
+        riskResult.status === "rejected"
+          ? errorMessage(riskResult.reason)
+          : "The API returned an unexpected risk response.",
+      );
+    }
     setLoading(false);
   }, []);
 
@@ -174,6 +361,85 @@ export function Dashboard() {
   }, [refresh]);
 
   const apiIsLive = health?.status === "LIVE" && health.database === "LIVE";
+  const selectedZone = useMemo(
+    () => risk?.zones.find((zone) => zone.zone_id === selectedZoneId) ?? null,
+    [risk, selectedZoneId],
+  );
+
+  async function submitAlert() {
+    if (!selectedZone) return;
+    setActionError("");
+    setPendingAction("create");
+    try {
+      const response = await fetch(`${apiBase}/api/v1/alerts`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${operatorToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          zone_id: selectedZone.zone_id,
+          location: selectedZone.location,
+          latitude: selectedZone.latitude,
+          longitude: selectedZone.longitude,
+          risk_score: selectedZone.risk_score,
+          language: language === "ta" ? "ta" : "en",
+          message: selectedZone.why,
+        }),
+      });
+      if (!response.ok) throw new Error(`Alert creation returned HTTP ${response.status}`);
+      await refresh();
+    } catch (error) {
+      setActionError(errorMessage(error));
+    } finally {
+      setPendingAction("");
+    }
+  }
+
+  function nextTransition(alert: AlertRecord): { event: string; label: string } | null {
+    const transitions: Record<string, { event: string; label: string }> = {
+      Created: { event: "Approved", label: t.approve },
+      Approved: { event: "Sent", label: t.send },
+      Sent: { event: "Delivered", label: t.delivered },
+      Delivered: { event: "Acknowledged", label: t.acknowledge },
+      Acknowledged: { event: "Resolved", label: t.resolve },
+    };
+    return transitions[alert.status] ?? null;
+  }
+
+  async function transitionAlert(alert: AlertRecord) {
+    const transition = nextTransition(alert);
+    if (!transition) return;
+    setActionError("");
+    setPendingAction(alert.id);
+    try {
+      const response = await fetch(
+        `${apiBase}/api/v1/alerts/${encodeURIComponent(alert.id)}/transition`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${operatorToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ event: transition.event }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Alert transition returned HTTP ${response.status}`);
+      }
+      await refresh();
+    } catch (error) {
+      setActionError(errorMessage(error));
+    } finally {
+      setPendingAction("");
+    }
+  }
+
+  const trendPoints = risk?.weather.seven_day_trend ?? [];
+  const trendValues = trendPoints
+    .map((point) => point.precipitation_mm)
+    .filter((value): value is number => value !== null);
+  const trendMax = Math.max(1, ...trendValues);
 
   return (
     <main className="page-shell">
@@ -189,6 +455,17 @@ export function Dashboard() {
         </a>
         <div className="topbar-right">
           <span className="prototype-label">PROTOTYPE · NOT AN OFFICIAL ALERT</span>
+          <label className="language-picker">
+            <span>{t.language}</span>
+            <select
+              value={language}
+              onChange={(event) => setLanguage(event.target.value as Language)}
+              aria-label={t.language}
+            >
+              <option value="en">English</option>
+              <option value="ta">தமிழ்</option>
+            </select>
+          </label>
           <button className="refresh-button" onClick={() => void refresh()} disabled={loading}>
             {loading ? "Checking…" : "Refresh"}
           </button>
@@ -234,6 +511,150 @@ export function Dashboard() {
         </p>
       </section>
 
+      <section className="section-block map-section">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">SIMULATED ZONES · WEATHER SOURCE TAGGED</p>
+            <h2>{t.mapTitle}</h2>
+          </div>
+          <StatusTag status={risk?.weather.status ?? "MISSING"} />
+        </div>
+        <p className="map-intro">{t.mapIntro}</p>
+        {riskError ? (
+          <div className="empty-state" role="status">
+            <strong>Risk map unavailable</strong>
+            <span>{riskError}</span>
+          </div>
+        ) : (
+          <div className="map-layout">
+            <div className="map-main">
+              <div className="map-toolbar">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showHeatmap}
+                    onChange={(event) => setShowHeatmap(event.target.checked)}
+                  />
+                  {t.heatmap} <StatusTag status="SIMULATED" />
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showZoneMarkers}
+                    onChange={(event) => setShowZoneMarkers(event.target.checked)}
+                  />
+                  {t.zones} <StatusTag status="SIMULATED" />
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showShelters}
+                    onChange={(event) => setShowShelters(event.target.checked)}
+                  />
+                  {t.shelters} <StatusTag status="SIMULATED" />
+                </label>
+              </div>
+              {risk ? (
+                <RiskMapView
+                  zones={risk.zones}
+                  shelters={risk.shelters.locations}
+                  showHeatmap={showHeatmap}
+                  showZoneMarkers={showZoneMarkers}
+                  showShelters={showShelters}
+                  onSelectZone={setSelectedZoneId}
+                />
+              ) : (
+                <div className="map-loading">Loading risk data…</div>
+              )}
+              <p className="map-attribution">
+                Map tiles © OpenStreetMap contributors. Risk grid is synthetic;
+                shelter points are placeholders, not actual sites.
+              </p>
+            </div>
+            <aside className="zone-drawer" aria-live="polite">
+              <p className="eyebrow">{t.selected}</p>
+              {selectedZone ? (
+                <>
+                  <h3>{selectedZone.location}</h3>
+                  <div className="drawer-tags">
+                    <StatusTag status={selectedZone.risk_status} />
+                    <StatusTag status={selectedZone.weather_status} />
+                    <StatusTag status={selectedZone.terrain_status} />
+                  </div>
+                  <p className="zone-score">
+                    <span>{t.score}</span>
+                    <strong>{selectedZone.risk_score.toFixed(3)}</strong>
+                    <small>{selectedZone.risk_level}</small>
+                  </p>
+                  <h4>{t.factors}</h4>
+                  <ul className="factor-list">
+                    {selectedZone.top_factors.map((factor) => (
+                      <li key={factor.feature}>
+                        <span>{factor.feature.replaceAll("_", " ")}</span>
+                        <strong>{factor.contribution.toFixed(3)}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                  <h4>{t.why}</h4>
+                  <p className="zone-why">{selectedZone.why}</p>
+                </>
+              ) : (
+                <p className="zone-why">Select a simulated zone marker.</p>
+              )}
+              <p className="drawer-disclaimer">{t.riskDisclaimer}</p>
+            </aside>
+          </div>
+        )}
+      </section>
+
+      <section className="section-block trend-section">
+        <div className="section-title">
+          <div>
+            <p className="eyebrow">OPEN-METEO OBSERVATIONS · NO GENERATED SERIES</p>
+            <h2>{t.trendTitle}</h2>
+          </div>
+          <StatusTag status={risk?.weather.status ?? "MISSING"} />
+        </div>
+        {trendPoints.length === 7 ? (
+          <div className="trend-chart" role="img" aria-label={t.trendTitle}>
+            {trendPoints.map((point) => (
+              <div className="trend-column" key={point.date}>
+                <span className="trend-value">
+                  {point.precipitation_mm === null
+                    ? "—"
+                    : `${point.precipitation_mm.toFixed(1)} mm`}
+                </span>
+                <div className="trend-track">
+                  <div
+                    className="trend-bar"
+                    style={{
+                      height:
+                        point.precipitation_mm === null
+                          ? "0%"
+                          : `${Math.max(4, (point.precipitation_mm / trendMax) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <span className="trend-date">{point.date.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <strong>{risk?.weather.status === "LIVE" ? t.trendMissing : t.trendMissing}</strong>
+            <span>
+              {risk?.weather.reason
+                ? `Weather status: ${risk.weather.status} (${risk.weather.reason}).`
+                : "The provider has not returned a complete seven-day series."}
+            </span>
+          </div>
+        )}
+        <p className="records-note">
+          {t.weatherAt}: {risk?.weather.data_timestamp ?? "unavailable"} ·{" "}
+          <StatusTag status={risk?.weather.status ?? "MISSING"} />
+        </p>
+      </section>
+
       <section className="section-block">
         <div className="section-title">
           <div>
@@ -264,6 +685,27 @@ export function Dashboard() {
           </div>
           <span className="record-count">{loading ? "…" : `${alerts.length} records`}</span>
         </div>
+        <div className="alert-controls">
+          <label>
+            {t.token}
+            <input
+              type="password"
+              autoComplete="off"
+              value={operatorToken}
+              onChange={(event) => setOperatorToken(event.target.value)}
+              placeholder="Bearer token"
+            />
+          </label>
+          <span>{t.tokenHint}</span>
+          <button
+            className="refresh-button"
+            disabled={!operatorToken || !selectedZone || pendingAction !== ""}
+            onClick={() => void submitAlert()}
+          >
+            {pendingAction === "create" ? "Working…" : t.createAlert}
+          </button>
+        </div>
+        {actionError && <p className="action-error" role="alert">{actionError}</p>}
         {alertsError ? (
           <div className="empty-state" role="status">
             <strong>Alert records unavailable</strong>
@@ -271,7 +713,7 @@ export function Dashboard() {
           </div>
         ) : alerts.length === 0 ? (
           <div className="empty-state">
-            <strong>{loading ? "Loading alert records…" : "No alert records returned."}</strong>
+            <strong>{loading ? "Loading alert records…" : t.noAlerts}</strong>
             <span>
               This list contains only API records. No sample incidents or
               locations are inserted by the dashboard.
@@ -287,6 +729,7 @@ export function Dashboard() {
                   <th>Workflow</th>
                   <th>Created</th>
                   <th>Label</th>
+                  <th>{t.lifecycle}</th>
                 </tr>
               </thead>
               <tbody>
@@ -297,6 +740,19 @@ export function Dashboard() {
                     <td>{alert.status}</td>
                     <td>{formatTimestamp(alert.created_at)}</td>
                     <td><StatusTag status="DEMO" /></td>
+                    <td>
+                      {nextTransition(alert) && (
+                        <button
+                          className="action-button"
+                          disabled={!operatorToken || pendingAction !== ""}
+                          onClick={() => void transitionAlert(alert)}
+                        >
+                          {pendingAction === alert.id
+                            ? "Working…"
+                            : nextTransition(alert)?.label}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

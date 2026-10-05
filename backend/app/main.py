@@ -24,7 +24,10 @@ from backend.app.alerts.engine import (
     point_in_geofence,
     verify_audit_chain,
 )
-from backend.app.alerts.evacuation import MockOpenRouteServiceAdapter
+from backend.app.alerts.evacuation import (
+    SIMULATED_SHELTERS,
+    MockOpenRouteServiceAdapter,
+)
 from backend.app.alerts.notifications import (
     CHANNELS,
     notification_adapters,
@@ -43,6 +46,10 @@ from backend.app.database import Base, engine, get_db
 from backend.app.ml.inference import infer_risk
 from backend.app.ml.synthetic_data import FEATURE_COLUMNS, generate_nilgiris_pilot
 from backend.app.models import Alert, AlertAudit, SosRequest
+from backend.app.risk import (
+    build_nilgiris_risk_zones,
+    fetch_open_meteo_weather,
+)
 from backend.app.security import require_roles
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -126,6 +133,54 @@ def health(db: Session = Depends(get_db)):
 def data_source_health():
     """Return registry metadata and latest source-check status."""
     return get_source_health()
+
+
+@app.get("/api/v1/risk", tags=["risk"])
+async def risk_zones(location: str = Query(default="Nilgiris")):
+    """Return synthetic Nilgiris zones, with live weather or an explicit demo fallback."""
+    if location.casefold() not in {"nilgiris", "nilgiris-tamil-nadu"}:
+        return {
+            "location": location,
+            "status": "MISSING",
+            "zones": [],
+            "weather": {"status": "MISSING"},
+            "message": "No verified terrain or configured weather location is available.",
+            "disclaimer": "Not a replacement for official IMD, NDMA, or GSI warnings.",
+        }
+    weather = await fetch_open_meteo_weather(latitude=11.35, longitude=76.7)
+    zones = build_nilgiris_risk_zones(
+        weather=weather,
+        infer_risk=infer_risk,
+        generate_pilot=generate_nilgiris_pilot,
+    )
+    return {
+        "location": "Nilgiris, Tamil Nadu",
+        "status": "DEMO",
+        "weather": {
+            key: weather.get(key)
+            for key in (
+                "status",
+                "reason",
+                "provider",
+                "fetched_at",
+                "data_timestamp",
+                "precipitation_mm",
+                "soil_moisture_fraction",
+                "seven_day_trend",
+            )
+        },
+        "zones": zones,
+        "zone_geometry_status": "SIMULATED",
+        "shelters": {
+            "status": "SIMULATED",
+            "locations": list(SIMULATED_SHELTERS),
+            "notice": "These are placeholders, not verified or actual shelters.",
+        },
+        "disclaimer": (
+            "Synthetic zone geometry and uncalibrated risk scores are not "
+            "warnings. Follow official IMD, NDMA, and GSI guidance."
+        ),
+    }
 
 
 @app.get("/api/v1/risk/{location}", tags=["risk"])

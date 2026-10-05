@@ -4,6 +4,30 @@ from __future__ import annotations
 
 from typing import Any
 
+SIMULATED_SHELTERS = (
+    {
+        "shelter_id": "sim-shelter-01",
+        "name": "SIMULATED shelter placeholder 1",
+        "latitude": 11.25,
+        "longitude": 76.35,
+        "status": "SIMULATED",
+    },
+    {
+        "shelter_id": "sim-shelter-02",
+        "name": "SIMULATED shelter placeholder 2",
+        "latitude": 11.45,
+        "longitude": 76.55,
+        "status": "SIMULATED",
+    },
+    {
+        "shelter_id": "sim-shelter-03",
+        "name": "SIMULATED shelter placeholder 3",
+        "latitude": 11.35,
+        "longitude": 76.82,
+        "status": "SIMULATED",
+    },
+)
+
 
 class MockOpenRouteServiceAdapter:
     """Explicit placeholder until a verified shelter list and ORS key exist."""

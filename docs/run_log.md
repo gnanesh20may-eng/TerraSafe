@@ -131,3 +131,29 @@
 - `/rescue` remains SCAFFOLD and a separate rescue page remains MISSING.
 - Whitespace check: `git -c core.whitespace=cr-at-eol diff --check` passed.
 - Completion timestamp (`Get-Date`): 2026-10-05T21:02:22.0430197+05:30.
+
+## P5b — map dashboard
+
+- Timestamp (`Get-Date`): 2026-10-05T22:26:25.1091655+05:30.
+- Added `GET /api/v1/risk` with Open-Meteo Forecast API precipitation and soil
+  moisture observations, an overall five-second timeout, explicit DEMO
+  provider-failure fallback, generated Nilgiris risk zones, and observed
+  seven-day rainfall history. Risk geometry/scores remain DEMO; this is not a
+  calibrated warning.
+- Live provider probe through `fetch_open_meteo_weather(11.35, 76.7)` returned
+  `status=LIVE`, provider `Open-Meteo Forecast API`, latest data timestamp
+  `2026-10-05T16:30:00+00:00`, precipitation `0.0 mm`, and soil moisture
+  fraction `0.413`. The response contained the provider's hourly precipitation
+  observations; these are observations, not a risk validation.
+- Added Leaflet map and risk overlays, layer toggles, zone detail/why drawer,
+  SIMULATED shelter placeholders, bilingual English/Tamil interface strings,
+  seven-day observed rainfall trend, and create/approve/acknowledge/resolve
+  alert controls.
+- Backend tests: `.venv\Scripts\python.exe -m pytest backend/tests -q` —
+  **49 passed in 48.78s**, including the explicit timeout-fallback test.
+- Frontend checks: `npm run typecheck` passed; `npm run build` passed on
+  Next.js 16.3.8 and prerendered `/` and `/_not-found`.
+- Whitespace check: `git -c core.whitespace=cr-at-eol diff --check` passed.
+- No weather dataset, real shelter data, or model artifacts were downloaded or
+  added. Official-warning disclaimer remains visible.
+- Completion timestamp (`Get-Date`): 2026-10-05T22:26:25.1091655+05:30.
