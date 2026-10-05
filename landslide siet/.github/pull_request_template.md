@@ -1,18 +1,15 @@
 ## Summary
 
-<!-- Describe the user-visible or operational change. -->
+<!-- What changed and why? -->
 
 ## Verification
 
-- [ ] Focused tests added or updated
-- [ ] `pytest backend/tests -q` passes
-- [ ] `npm run build` passes
-- [ ] Demo/live/simulated status is accurate in the UI and `docs/status.md`
-- [ ] No credentials, private data, or unlicensed datasets added
-- [ ] Safety copy does not replace official IMD / NDMA / GSI or local-authority instructions
+- [ ] `python -m pytest backend/tests -q`
+- [ ] `npm run build` (from `frontend/`)
+- [ ] New or changed behavior has focused tests
+- [ ] Live, demo, simulated, scaffold, and missing behavior is labelled honestly
+- [ ] No secrets, downloaded data, or model artifacts are included
 
-## Data and model impact
+## Safety and data notes
 
-- Data sources/licences changed: <!-- none or details -->
-- Model/evaluation impact: <!-- none or details -->
-- Operational limitations: <!-- none or details -->
+<!-- Identify input sources, limitations, and any user-facing safety changes. -->
