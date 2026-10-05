@@ -17,32 +17,32 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _model_factories(seed: int) -> dict[str, Any]:
-    try:
-        from lightgbm import LGBMClassifier
-        from xgboost import XGBClassifier
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.pipeline import make_pipeline
-        from sklearn.preprocessing import StandardScaler
-    except ImportError as exc:
-        raise RuntimeError(
-            "Install project dependencies with "
-            "`python -m pip install -r requirements.txt` to train all four models."
-        ) from exc
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
 
-    return {
+    factories = {
         "LogisticRegression": lambda: make_pipeline(
             StandardScaler(),
             LogisticRegression(max_iter=1000, class_weight="balanced", random_state=seed),
         ),
-        "RandomForest": lambda: RandomForestClassifier(
+    }
+    try:
+        from sklearn.ensemble import RandomForestClassifier
+
+        factories["RandomForest"] = lambda: RandomForestClassifier(
             n_estimators=120,
             min_samples_leaf=2,
             class_weight="balanced",
             random_state=seed,
             n_jobs=1,
-        ),
-        "XGBoost": lambda: XGBClassifier(
+        )
+    except Exception as exc:
+        LOGGER.warning("RandomForest unavailable; continuing without it: %s", exc)
+    try:
+        from xgboost import XGBClassifier
+
+        factories["XGBoost"] = lambda: XGBClassifier(
             n_estimators=100,
             max_depth=3,
             learning_rate=0.06,
@@ -52,16 +52,23 @@ def _model_factories(seed: int) -> dict[str, Any]:
             tree_method="hist",
             n_jobs=1,
             random_state=seed,
-        ),
-        "LightGBM": lambda: LGBMClassifier(
+        )
+    except Exception as exc:
+        LOGGER.warning("XGBoost unavailable; continuing without it: %s", exc)
+    try:
+        from lightgbm import LGBMClassifier
+
+        factories["LightGBM"] = lambda: LGBMClassifier(
             n_estimators=100,
             max_depth=4,
             learning_rate=0.06,
             verbosity=-1,
             n_jobs=1,
             random_state=seed,
-        ),
-    }
+        )
+    except Exception as exc:
+        LOGGER.warning("LightGBM unavailable; continuing without it: %s", exc)
+    return factories
 
 
 def _classification_metrics(y_true: np.ndarray, scores: np.ndarray) -> dict[str, Any]:
