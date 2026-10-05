@@ -1,15 +1,16 @@
-# LandSense
+# TerraSafe
 
-LandSense is an offline-first AI landslide early-warning and risk-monitoring
-platform scaffold for PSA 04. **It is a decision-support tool, not a replacement
-for official IMD, NDMA, or GSI warnings.** P1 currently provides a runnable
-synthetic-data susceptibility experiment, not an operational warning service.
+TerraSafe is a landslide early-warning and rescue-platform prototype for PSA
+04. **It is a decision-support tool, not a replacement for official IMD, NDMA,
+or GSI warnings.** The current checkout contains synthetic susceptibility and
+dynamic-risk/forecast helper code; it does not contain a FastAPI service or
+Next.js frontend. Check [`docs/status.md`](docs/status.md) for observed feature
+status and limitations.
 
 ## P1: synthetic susceptibility baseline
 
-Python 3.11+ is currently used for local development. The requested Python 3.12
-interpreter is not installed on the inspected machine; use an installed
-compatible interpreter for now.
+Python 3.11+ is used for local development. On Windows, run
+`.\scripts\setup.ps1`; on macOS/Linux, run `./scripts/setup.sh`.
 
 ```powershell
 py -3.11 -m venv .venv
@@ -45,3 +46,11 @@ infinite-slope, dynamic-risk, 24/48/72-hour forecast, conformal interval, SHAP,
 counterfactual, and PSI helpers are documented in `docs/dynamic-risk.md`.
 Thresholds and the trigger-based forecast are experimental, and no real
 provider feed or trained time-series model is implied.
+
+## Contributing
+
+See [`docs/onboarding.md`](docs/onboarding.md) for setup and contribution
+guidance. Pull requests must include focused tests and update feature labels in
+`docs/status.md`. Use `git -c core.whitespace=cr-at-eol diff --check` before
+committing. The CI workflow runs the backend tests; it runs a frontend build
+only when a frontend package manifest is present.

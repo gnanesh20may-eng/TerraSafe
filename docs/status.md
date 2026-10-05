@@ -25,7 +25,7 @@ that a live provider, device, or public-safety workflow has been validated.
 | Phase | Status | Evidence / outstanding work |
 | --- | --- | --- |
 | P0 Audit | LIVE | Audited this checkout; backend tests pass. `npm run build` is unavailable because no build script/package manifest exists. Existing two test modules are populated (19 tests total), so no empty test files were found to fill. |
-| P1 Repository and onboarding | MISSING | Contributing guidance, PR template, CODEOWNERS, cross-platform setup, onboarding, and CI are not present. |
+| P1 Repository and onboarding | LIVE | Added contribution guidance, PR template, CODEOWNERS, cross-platform setup, onboarding, CRLF-aware attributes, and CI. Frontend build is conditional because this checkout has no frontend package. |
 | P2 Data registry and download tooling | SCAFFOLD | P2 ingestion adapters exist, but registry, regional bounds, downloader, source-health checks, and source-health API are not present. |
 | P3 ML notebooks and inference | SCAFFOLD | P1/P2 baseline helpers exist; requested notebooks, exported-model loading/fallback inference, and associated tests are not present. |
 | P4 Alerts and API | MISSING | No backend API, persistence, alert lifecycle, auth, or delivery service is present. |

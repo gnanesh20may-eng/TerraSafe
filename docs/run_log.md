@@ -18,3 +18,16 @@
 - Scope note: the supplied project-state description does not match this
   checkout. `docs/status.md` records observed gaps as MISSING rather than
   treating them as completed.
+
+## P1 — repository and onboarding
+
+- Timestamp (`Get-Date`): 2026-10-05T19:54:06+05:30
+- Result: added contributor/PR/ownership guidance, cross-platform setup
+  scripts, onboarding including Windows native tree-model limitations and a
+  Colab safety workaround, CRLF-aware Git attributes, and CI.
+- CI backend command: install `requirements.txt`, then
+  `python -m pytest backend/tests -q`.
+- CI frontend build: conditional on `frontend/package.json`; no frontend
+  exists in this checkout, so no frontend build is claimed.
+- Safety labels and official-warning disclaimer are included in onboarding
+  and PR checklist.
