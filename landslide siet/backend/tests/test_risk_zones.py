@@ -224,3 +224,26 @@ def get_data_sources():
         "terrain_source": "DEMO TERRAIN PROVIDER",
         "last_update": "2026-10-05T12:00:00Z",
     }
+
+
+def test_risk_zone_geojson_has_closed_polygons_and_demo_disclaimer():
+    payload = build_risk_zone_geojson(DEMO_LOCATIONS, {"coonor": 68, "ooty": 41})
+
+    assert payload["type"] == "FeatureCollection"
+    assert len(payload["features"]) == 2
+    assert "Synthetic demonstration" in payload["metadata"]["disclaimer"]
+    for feature in payload["features"]:
+        assert feature["geometry"]["type"] == "Polygon"
+        ring = feature["geometry"]["coordinates"][0]
+        assert len(ring) >= 4
+        assert ring[0] == ring[-1]
+
+
+def test_risk_zone_score_is_clamped_and_classified():
+    payload = build_risk_zone_geojson(
+        [{"id": "test", "name": "Test", "latitude": 10.0, "longitude": 76.0}],
+        {"test": 112.0},
+    )
+
+    assert payload["features"][0]["properties"]["score"] == 100
+    assert payload["features"][0]["properties"]["zone"] == "CRITICAL"

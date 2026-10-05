@@ -222,3 +222,25 @@ def get_alerts():
             {"id": "a1", "risk_state": "HIGH", "alert_state": "NEW", "message": "Elevated rainfall and soil moisture in monitored area.", "created_at": "2026-10-05T11:40:00Z"},
         ]
     }
+
+
+def test_environment_response_identifies_demo_sources():
+    location = LocationRef("coonor", "Coonoor", 11.35, 76.8, "Nilgiris District")
+
+    snapshot = environment_service.get_environment(location)
+
+    assert snapshot["location"]["id"] == "coonor"
+    assert snapshot["weather"]["source"].startswith("DEMO")
+    assert snapshot["terrain"]["source"].startswith("DEMO")
+    assert snapshot["satellite"]["source"].startswith("DEMO")
+    assert snapshot["data_status"] == "DEMO DATA"
+    assert snapshot["last_updated"]
+
+
+def test_environment_supports_unlisted_coordinates_with_demo_defaults():
+    location = LocationRef("test", "Test", 0.0, 0.0)
+
+    snapshot = environment_service.get_environment(location)
+
+    assert snapshot["location"]["latitude"] == 0.0
+    assert snapshot["location"]["longitude"] == 0.0

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LocationSearch } from '@/components/location-search';
 
 export default function HomePage() {
   return (

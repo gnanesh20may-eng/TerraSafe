@@ -17,6 +17,8 @@ htmlcov/
 
 # Frontend
 node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
 frontend/dist/
 frontend/.vite/
 
