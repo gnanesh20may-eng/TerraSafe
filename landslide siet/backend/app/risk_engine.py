@@ -1,16 +1,4 @@
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
-
-from backend.app.models import classify_risk
-
-
-def safe_float(value: Any, default: float = 0.0) -> float:
-    try:
-        if value is None:
-            return default
-        return float(value)
-    except Exception:
-        return default
+from typing import Any, Dict, Tuple
 
 
 def calc_weighted_risk(
@@ -18,66 +6,95 @@ def calc_weighted_risk(
     terrain: Dict[str, Any],
     satellite: Dict[str, Any],
     historical: Dict[str, Any],
-) -> Tuple[int, List[str], Dict[str, Any]]:
-    rainfall_24 = safe_float(weather.get("rain_24h_mm"), 0.0)
-    rainfall_72 = safe_float(weather.get("rain_72h_mm"), 0.0)
-    soil_moisture = safe_float(weather.get("soil_moisture"), 0.0)
-    slope = safe_float(terrain.get("slope_deg"), 0.0)
-    ndvi = safe_float(satellite.get("ndvi"), 0.5)
-    hist = safe_float(historical.get("historical_landslides_nearby"), 0.0)
-    roads = safe_float(terrain.get("roads_proximity_km"), 10.0)
-    settlements = safe_float(terrain.get("settlements_proximity_km"), 10.0)
+) -> Tuple[int, List[str], Dict[str, float]]:
+    """
+    Calculate weighted risk score (0-100) from multiple factors.
+    Returns: (score, contributing_factors, detailed_breakdown)
+    """
 
-    score = 0.0
-    reasons: List[str] = []
+    base_score = 30
 
-    if rainfall_24 >= 60:
-        score += 22
-        reasons.append("Heavy rainfall")
-    elif rainfall_24 >= 25:
-        score += 10
+    # Rainfall component (max 35%)
+    rain_24h = float(weather.get("rain_24h_mm", 0))
+    rain_72h = float(weather.get("rain_72h_mm", 0))
+    rainfall_score = 0
+    if rain_24h >= 60:
+        rainfall_score = 22
+    elif rain_24h >= 25:
+        rainfall_score = 10
+    elif rain_24h >= 10:
+        rainfall_score = 5
 
-    if rainfall_72 >= 100:
-        score += 18
-        reasons.append("Extended heavy rainfall")
-    elif rainfall_72 >= 50:
-        score += 10
+    if rain_72h >= 150:
+        rainfall_score = min(35, rainfall_score + 15)
+    elif rain_72h >= 75:
+        rainfall_score = min(35, rainfall_score + 8)
 
-    if soil_moisture >= 65:
-        score += 15
-        reasons.append("High soil moisture")
+    # Soil moisture component (max 25%)
+    soil_moisture = float(weather.get("soil_moisture", 0))
+    moisture_score = 0
+    if soil_moisture >= 75:
+        moisture_score = 25
+    elif soil_moisture >= 65:
+        moisture_score = 15
+    elif soil_moisture >= 50:
+        moisture_score = 8
 
-    if slope >= 25:
-        score += 16
-        reasons.append("High slope")
+    # Slope component (max 20%)
+    slope = float(terrain.get("slope_deg", 0))
+    slope_score = 0
+    if slope >= 30:
+        slope_score = 20
+    elif slope >= 25:
+        slope_score = 16
     elif slope >= 15:
-        score += 8
+        slope_score = 8
 
+    # Vegetation/NDVI component (max 15%)
+    ndvi = float(satellite.get("ndvi", 0.5))
+    veg_score = 0
+    if ndvi < 0.35:
+        veg_score = 15
+    elif ndvi < 0.45:
+        veg_score = 10
+    elif ndvi < 0.60:
+        veg_score = 5
+
+    # Historical component (max 18%)
+    hist_incidents = float(historical.get("historical_landslides_nearby", 0))
+    hist_score = 0
+    if hist_incidents >= 4:
+        hist_score = 18
+    elif hist_incidents >= 2:
+        hist_score = 8
+    elif hist_incidents >= 1:
+        hist_score = 4
+
+    # Calculate total
+    total_score = int(
+        min(100, base_score + rainfall_score + moisture_score + slope_score + veg_score + hist_score)
+    )
+
+    # Contributing factors
+    factors = []
+    if rain_24h >= 25:
+        factors.append("Heavy rainfall")
+    if soil_moisture >= 65:
+        factors.append("High soil moisture")
+    if slope >= 25:
+        factors.append("High slope")
     if ndvi < 0.45:
-        score += 10
-        reasons.append("Low vegetation stability")
-    elif ndvi < 0.6:
-        score += 5
+        factors.append("Low vegetation stability")
+    if hist_incidents >= 1:
+        factors.append("Historical landslides nearby")
 
-    if hist >= 4:
-        score += 18
-        reasons.append("Historical landslides nearby")
-    elif hist >= 1:
-        score += 8
-
-    if roads < 1.0:
-        score += 6
-    if settlements < 1.0:
-        score += 5
-
-    score = max(0.0, min(100.0, score))
-    unique_reasons: List[str] = []
-    for reason in reasons:
-        if reason not in unique_reasons:
-            unique_reasons.append(reason)
-
-    return int(round(score)), unique_reasons, {
-        "riskScore": int(round(score)),
-        "riskLevel": classify_risk(score),
-        "updatedAt": datetime.now(timezone.utc).isoformat(),
+    breakdown = {
+        "base": base_score,
+        "rainfall": rainfall_score,
+        "moisture": moisture_score,
+        "slope": slope_score,
+        "vegetation": veg_score,
+        "historical": hist_score,
     }
+
+    return total_score, factors, breakdown

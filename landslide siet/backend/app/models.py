@@ -1,16 +1,13 @@
-from typing import Any, Dict, List
+from typing import Dict, Any, Tuple
 
 
-def classify_risk(score: float) -> str:
-    if score <= 25:
+def classify_risk(score: int) -> str:
+    """Classify risk score into level."""
+    if score <= 30:
         return "LOW"
-    if score <= 50:
+    elif score <= 60:
         return "MODERATE"
-    if score <= 75:
+    elif score <= 80:
         return "HIGH"
-    return "CRITICAL"
-
-
-def get_risk_color(level: str) -> str:
-    mapping = {"LOW": "#22c55e", "MODERATE": "#facc15", "HIGH": "#f97316", "CRITICAL": "#ef4444"}
-    return mapping.get(level.upper(), "#94a3b8")
+    else:
+        return "CRITICAL"
