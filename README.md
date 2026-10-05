@@ -54,6 +54,15 @@ NEEDS_REVIEW. The source API entry point is
 `python -m uvicorn backend.app.main:app --port 8000`; currently the only
 registered route is `GET /api/v1/health/data-sources`.
 
+## P3: model inference scaffold
+
+`backend.app.ml.inference.infer_risk()` provides a labeled synthetic Logistic
+Regression fallback, optional checksum-verified local model loading, hybrid
+rainfall/slope calculations, zone-threshold and disagreement indicators, and
+explicit placeholder uncertainty when calibration is absent. The four
+notebooks under `notebooks/` are SCAFFOLD and NOT RUN. See
+[`docs/model_card.md`](docs/model_card.md) for limits and artifact trust notes.
+
 ## Contributing
 
 See [`docs/onboarding.md`](docs/onboarding.md) for setup and contribution

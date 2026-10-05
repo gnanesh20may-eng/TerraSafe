@@ -17,54 +17,65 @@ LOGGER = logging.getLogger(__name__)
 
 def _model_factories(seed: int) -> dict[str, Any]:
     try:
-        from lightgbm import LGBMClassifier
-        from xgboost import XGBClassifier
-        from sklearn.ensemble import RandomForestClassifier
         from sklearn.linear_model import LogisticRegression
         from sklearn.pipeline import make_pipeline
         from sklearn.preprocessing import StandardScaler
-    except ModuleNotFoundError as exc:
-        raise RuntimeError(
-            "Install project dependencies with "
-            "`python -m pip install -r requirements.txt` to train all four models."
-        ) from exc
-    except ImportError as exc:
-        raise RuntimeError(
-            f"Unable to load a model dependency or native extension: {exc}"
-        ) from exc
+    except (ImportError, OSError) as exc:
+        from backend.app.ml.logistic import NumpyLogisticRegression
 
-    return {
-        "LogisticRegression": lambda: make_pipeline(
+        LOGGER.warning(
+            "scikit-learn LogisticRegression is unavailable (%s); using NumPy logistic regression.",
+            exc,
+        )
+        logistic_factory = lambda: NumpyLogisticRegression(max_iter=1000)
+    else:
+        logistic_factory = lambda: make_pipeline(
             StandardScaler(),
             LogisticRegression(max_iter=1000, class_weight="balanced", random_state=seed),
-        ),
-        "RandomForest": lambda: RandomForestClassifier(
-            n_estimators=120,
-            min_samples_leaf=2,
-            class_weight="balanced",
-            random_state=seed,
-            n_jobs=1,
-        ),
-        "XGBoost": lambda: XGBClassifier(
-            n_estimators=100,
-            max_depth=3,
-            learning_rate=0.06,
-            subsample=0.9,
-            colsample_bytree=0.9,
-            eval_metric="logloss",
-            tree_method="hist",
-            n_jobs=1,
-            random_state=seed,
-        ),
-        "LightGBM": lambda: LGBMClassifier(
-            n_estimators=100,
-            max_depth=4,
-            learning_rate=0.06,
-            verbosity=-1,
-            n_jobs=1,
-            random_state=seed,
-        ),
-    }
+        )
+
+    factories: dict[str, Any] = {"LogisticRegression": logistic_factory}
+    try:
+        from lightgbm import LGBMClassifier
+        from xgboost import XGBClassifier
+        from sklearn.ensemble import RandomForestClassifier
+    except (ImportError, OSError) as exc:
+        LOGGER.warning(
+            "Optional tree-model imports are unavailable (%s); using LogisticRegression.",
+            exc,
+        )
+    else:
+        factories.update(
+            {
+                "RandomForest": lambda: RandomForestClassifier(
+                    n_estimators=120,
+                    min_samples_leaf=2,
+                    class_weight="balanced",
+                    random_state=seed,
+                    n_jobs=1,
+                ),
+                "XGBoost": lambda: XGBClassifier(
+                    n_estimators=100,
+                    max_depth=3,
+                    learning_rate=0.06,
+                    subsample=0.9,
+                    colsample_bytree=0.9,
+                    eval_metric="logloss",
+                    tree_method="hist",
+                    n_jobs=1,
+                    random_state=seed,
+                ),
+                "LightGBM": lambda: LGBMClassifier(
+                    n_estimators=100,
+                    max_depth=4,
+                    learning_rate=0.06,
+                    verbosity=-1,
+                    n_jobs=1,
+                    random_state=seed,
+                ),
+            }
+        )
+    return factories
 
 
 def _classification_metrics(y_true: np.ndarray, scores: np.ndarray) -> dict[str, Any]:

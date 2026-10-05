@@ -19,13 +19,17 @@ codes, and synthetic road/stream distances. All GeoJSON features carry a
 
 ## Methods
 
-The pipeline compares Logistic Regression, Random Forest, XGBoost, and LightGBM
-using five-fold `GroupKFold` cross-validation grouped by spatial blocks. It
-reports mean fold accuracy, precision, recall, F1, ROC-AUC, and false-alarm and
-miss rates, plus confusion counts aggregated across held-out folds. A final
-model is fit on all synthetic cells and emits Low, Moderate, High, and Critical
-demo susceptibility polygons. Classes use probability cutoffs 0.25, 0.50, and
-0.75; these are illustrative, not calibrated thresholds.
+The pipeline attempts Logistic Regression, Random Forest, XGBoost, and
+LightGBM with five-fold `GroupKFold` cross-validation grouped by spatial
+blocks. If native model imports are blocked, unavailable optional models are
+omitted and the pipeline retains a Logistic Regression baseline. If the
+scikit-learn linear-model extension is also blocked, a deterministic NumPy
+binary Logistic Regression implementation is used. Available models report
+fold accuracy, precision, recall, F1, ROC-AUC, false-alarm and miss rates, and
+confusion counts. A final model is fit on all synthetic cells and emits Low,
+Moderate, High, and Critical demo susceptibility polygons. Classes use
+illustrative probability cutoffs 0.25, 0.50, and 0.75; they are not calibrated
+warning thresholds.
 
 ## Performance and limitations
 
@@ -47,6 +51,26 @@ only emitted with an adequate held-out calibration set. PSI is used as an
 operator-review drift signal, not an automatic retraining or promotion rule.
 The P2 package also exposes MAPIE split-conformal intervals and ONNX export
 helpers; neither constitutes deployment approval or calibration evidence.
+
+## P3 inference and artifact status
+
+The inference helper can load a local `.joblib` classifier only when its
+adjacent `.sha256` integrity file matches; the checksum does not authenticate
+the artifact publisher, and joblib files must be trusted before loading. If no
+artifact exists, inference fits Logistic Regression on a deterministic
+synthetic grid and labels its output `SIMULATED`. A loaded local model is
+`SCAFFOLD` until its data lineage and validation are reviewed. Uncertainty is
+`SCAFFOLD` unless adequate caller-supplied calibration residuals are provided;
+the implementation does not claim that the current project has valid
+real-world residuals. Zone quantiles, slope physics, rainfall memory, top
+factors, and disagreement checks are scenario/demo features, not calibrated
+causal explanations or safety thresholds.
+
+Four Colab notebooks are checked in as **SCAFFOLD — NOT RUN**. No new
+performance metric or trained LSTM/TFT result is reported for P3.
+The export helper can produce ONNX, but the current inference loader accepts
+only checksum-matched `.joblib` classifiers; ONNX Runtime inference is not
+implemented.
 
 ## Reproduction
 

@@ -55,3 +55,27 @@
 - Completion timestamp (`Get-Date`): 2026-10-05T20:21:53+05:30.
 - Final P2 backend gate: **28 passed in 4.97s**; Python compileall and Git
   whitespace checks passed.
+
+## P3 — ML inference and notebook scaffolds
+
+- Timestamp (`Get-Date`): 2026-10-05T20:23:36+05:30.
+- Added `infer_risk()` with synthetic Logistic Regression fallback, hash-checked
+  local joblib loading, rainfall intensity-duration scoring, infinite-slope
+  scenario physics, 7d/30d antecedent rainfall memory, optional empirical
+  per-zone thresholds, optional model-disagreement checks, top factors, and
+  explicit SCAFFOLD uncertainty when adequate calibration is unavailable.
+- The observed Windows environment blocks `sklearn.linear_model` import through
+  Application Control (`_sgd_fast` DLL). Added a NumPy Logistic Regression
+  fallback; tree-model imports remain optional and are isolated in a try/except.
+- Training smoke command completed on a temporary synthetic 10x10 grid:
+  `best_model=LogisticRegression; folds=5`. Output was SIMULATED and temporary
+  generated files were removed.
+- Added four valid nbformat 4 notebooks, each marked **SCAFFOLD — NOT RUN**.
+  Python cell syntax and null execution counts were verified; no notebook was
+  executed. LSTM/TFT and leakage-safe stacking remain plans/TODOs.
+- Added an HTTPS-only, 200 MiB bounded `.joblib` fetcher requiring an
+  operator-supplied SHA-256. Hash matching is integrity checking, not publisher
+  authentication. No external model was fetched.
+- Final full backend suite: **38 passed in 7.45s**. Notebook JSON/cell syntax,
+  Python compileall, and CRLF-aware whitespace checks passed.
+- Completion timestamp (`Get-Date`): 2026-10-05T20:38:07+05:30.
