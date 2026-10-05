@@ -12,11 +12,11 @@ The system supports:
 - Rescue and safe-zone workflows
 - Alerts, monitoring, and operational dashboards
 
-Important: This platform is decision-support software and not a replacement for official disaster-management warnings or emergency instructions.
+Important: This platform is decision-support software and is not a replacement for official IMD, NDMA, GSI, or local-authority warnings and emergency instructions.
 
-## Current phase
+## Current implementation status
 
-Phase 1 includes:
+Completed foundation:
 - Monorepo structure and project architecture
 - Database and API architecture design
 - ML and GIS pipeline documentation
@@ -24,6 +24,17 @@ Phase 1 includes:
 - Docker and CI scaffolding
 - Basic authentication and health endpoints
 - Validation via Python tests
+
+Current provider slice:
+- Open-Meteo weather is selected when `DEMO_MODE=false`.
+- Terrain and satellite responses remain demo data until real DEM and Earth-observation processors are configured.
+- Mixed-source status is explicit; upstream weather failures return HTTP 503 without silently substituting demo measurements.
+
+Data pipeline:
+- `data_sources/registry.yaml` tracks source access, licence, coverage, fallback, and verification status. Ten approximate region bounds are query windows, not legal boundaries.
+- Preview the approved Nilgiris requests with `scripts/download_all.py --source open_meteo_nilgiris_history --source usgs_earthquake_catalog --region nilgiris --dry-run`; remove `--dry-run` to fetch. Raw data, mocks, and logs are git-ignored.
+- Run `scripts/check_sources.py --region nilgiris` to write the source health report and API snapshot. Run `scripts/validate_download.py <file>` to check supported JSON/GeoJSON structure.
+- Only Open-Meteo historical reanalysis and USGS FDSN were queried. See [data_health.md](docs/data_health.md); NASA/GSI inventory and other sources remain manual or under review.
 
 ## Repository layout
 
@@ -39,6 +50,9 @@ landslide siet/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
+├── data_sources/
+│   └── registry.yaml
+├── scripts/
 ├── docs/
 │   ├── architecture.md
 │   ├── api.md
@@ -65,6 +79,10 @@ landslide siet/
 
 ## Quick start
 
+### Recommended setup
+
+Run `scripts/setup.ps1` from PowerShell on Windows or `bash scripts/setup.sh` on macOS/Linux. See [Contributor Onboarding](docs/onboarding.md) for the manual steps and known platform limitations.
+
 ### Python backend
 
 ```bash
@@ -86,6 +104,8 @@ docker compose up --build
 ## Environment variables
 
 Copy `.env.example` to `.env` and configure values as needed.
+
+Set `DEMO_MODE=false` to request live Open-Meteo weather. This does not enable live terrain, satellite observations, or a validated landslide model.
 
 ```bash
 cp .env.example .env
@@ -115,15 +135,6 @@ Use the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) and follow
 
 ## Phase 1 outcomes
 
-Completed in this stage:
-- System architecture definition
-- Database ER model and API design
-- ML and GIS pipeline concepts
-- Frontend and backend skeletons
-- Security/auth foundations
-- Docker and CI scaffolding
-- Testable baseline
+Create branches using `data/`, `ml/`, `backend/`, `frontend/`, or `rescue/` prefixes, followed by a short kebab-case task name. Keep pull requests scoped, add focused tests, and update `docs/status.md` when feature status or data provenance changes. See [issue-labels.md](docs/issue-labels.md) for triage conventions and the pull request template for the review checklist. The current CODEOWNERS file is only a placeholder and does not configure active reviewers.
 
-## Next phase
-
-The next step is to extend the home screen, location search, map, and backend risk API flow from this foundation.
+Before opening a pull request, run `python -m pytest backend/tests -q`, `npm run typecheck`, and `npm run build` from `frontend/`. Do not commit `.env`, credentials, private data, downloaded datasets, or unreviewed model artifacts.

@@ -2,47 +2,57 @@
 
 ## Status and intended use
 
-This is an engineering/demo baseline for a configurable pilot region, defaulting
-to Nilgiris, Tamil Nadu. It is **not validated for operational landslide warning,
-evacuation, or public-safety decisions** and must not replace official IMD, NDMA,
-or GSI warnings.
+This is an engineering/demo baseline for Nilgiris, Tamil Nadu. It is **not
+validated for operational landslide warning, evacuation, or public-safety
+decisions** and must not replace official IMD, NDMA, GSI, or local-authority
+warnings.
 
 ## Data and provenance
 
-The current pipeline generates a deterministic synthetic 40 × 40 terrain grid,
-feature proxies, and synthetic landslide labels. No real DEM, NASA Global
-Landslide Catalog, GSI Bhukosh, soil, land-cover, NDVI, or OSM download was
-available or included. Synthetic features include elevation-derived slope,
-aspect, curvature, proxy TWI, NDVI-like values, soil-clay proxy, land-cover
-codes, and synthetic road/stream distances. All GeoJSON features carry a
-`synthetic: true` marker.
+The training pipeline generates a deterministic synthetic 40 × 40 terrain
+grid, feature proxies, and synthetic labels. The inference fallback fits a
+LogisticRegression model on a deterministic 16 × 16 synthetic grid. No real
+landslide inventory or terrain product was downloaded. Phase 2 did retrieve
+168 hourly Open-Meteo ERA5-Land reanalysis rows for one Nilgiris coordinate and
+queried USGS earthquakes (0 matching events); neither is a landslide label or
+training observation in this model. Synthetic features include elevation,
+slope, aspect, curvature, proxy TWI, NDVI-like values, soil-clay proxy,
+land-cover codes, and synthetic road/stream distances. Synthetic GeoJSON cells
+carry a `synthetic: true` marker.
 
 ## Methods
 
-The pipeline compares Logistic Regression, Random Forest, XGBoost, and LightGBM
-using five-fold `GroupKFold` cross-validation grouped by spatial blocks. It
-reports mean fold accuracy, precision, recall, F1, ROC-AUC, and false-alarm and
-miss rates, plus confusion counts aggregated across held-out folds. A final
-model is fit on all synthetic cells and emits Low, Moderate, High, and Critical
-demo susceptibility polygons. Classes use probability cutoffs 0.25, 0.50, and
-0.75; these are illustrative, not calibrated thresholds.
+The code supports LogisticRegression and optional RandomForest, XGBoost, and
+LightGBM candidates with `GroupKFold` spatial-block splits. Optional model
+imports are guarded so LogisticRegression remains available if a tree library
+cannot load. A single guarded probe confirmed that RandomForest imports in the
+current workspace venv; no tree-model training or comparison has been run here.
+When an exported artifact is absent, `InferenceEngine` fits a synthetic
+LogisticRegression fallback in memory. Its response is labelled DEMO, returns
+coefficient contributions rather than SHAP, and reports uncertainty as
+unavailable. Physics and rainfall intensity-duration helpers require measured
+soil parameters and locally reviewed threshold coefficients; their hybrid
+weights are caller-supplied and marked SIMULATED.
 
 ## Performance and limitations
 
-Metrics are produced locally by `backend/app/ml/train.py` and written to
-`ml/data/generated/metrics.json`; they are intentionally not represented as
-measured real-world performance. Synthetic train/test similarity makes these
-scores unsuitable for generalization claims. The pilot needs real,
-time-consistent, spatially held-out inventory and covariate data, calibration,
-independent validation, and domain review before any applied use.
+**No model performance metrics are reported in this card:** the training
+pipeline has not been run for this work. Do not claim accuracy, AUC, lead time,
+calibration, or generalization. Four Colab notebooks exist as SCAFFOLD and have
+not been executed. TFT, MAPIE conformal intervals, SHAP, and ONNX export remain
+unrun. Before applied use, the pilot needs licensed real inventory,
+time-consistent terrain/environmental covariates, spatial and temporal holdout,
+calibration, independent evaluation, and domain review.
 
 ## Reproduction
 
-Install `requirements.txt`, then run:
+Install `requirements.txt`, then run the synthetic-only training command:
 
 ```powershell
 python -m backend.app.ml.train --no-mlflow
 ```
 
-For MLflow logging, omit `--no-mlflow`; local metrics remain available in the
-generated JSON regardless.
+The command has not been run as part of this implementation. Any generated
+metrics/artifacts describe only synthetic data. Exported joblib files are
+trusted-code-only; fetch them only from a reviewed HTTPS source with a matching
+SHA-256 manifest using `scripts/fetch_models.py`.

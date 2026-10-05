@@ -17,10 +17,11 @@ class LocationRef:
 class WeatherConditions:
     rainfall_24h_mm: float
     rainfall_7d_mm: float
-    soil_moisture_pct: float
+    soil_moisture_pct: float | None
     wind_speed_kmh: float
     temperature_c: float
     source: str = "demo"
+    observed_at: str | None = None
 
 
 @dataclass
@@ -58,6 +59,10 @@ class SatelliteProvider(ABC):
     @abstractmethod
     def get_satellite_observation(self, location: LocationRef) -> SatelliteObservation:
         raise NotImplementedError
+
+
+class ProviderUnavailableError(RuntimeError):
+    pass
 
 
 class BaseDemoProvider:

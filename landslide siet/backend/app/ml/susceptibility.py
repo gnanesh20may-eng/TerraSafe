@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import joblib
 import logging
 from pathlib import Path
 from typing import Any
@@ -234,6 +235,17 @@ def train_and_export(
     )
     (output_dir / "susceptibility_zones.geojson").write_text(
         json.dumps(zones, indent=2), encoding="utf-8"
+    )
+    joblib.dump(
+        {
+            "model": best_model,
+            "model_name": best_name,
+            "feature_columns": list(FEATURE_COLUMNS),
+            "synthetic": True,
+            "data_source": pilot.source_label,
+            "metrics": evaluation["metrics"].get(best_name),
+        },
+        output_dir / "susceptibility.joblib",
     )
     if log_to_mlflow:
         _log_to_mlflow(result)

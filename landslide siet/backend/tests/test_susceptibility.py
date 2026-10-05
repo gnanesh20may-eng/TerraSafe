@@ -1,10 +1,12 @@
 import json
+import builtins
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from backend.app.ml.susceptibility import (
+    _model_factories,
     _classification_metrics,
     make_zone_geojson,
 )
@@ -25,6 +27,21 @@ def test_synthetic_pilot_is_repeatable_and_has_required_features():
 def test_synthetic_pilot_rejects_grid_too_small_for_spatial_validation():
     with pytest.raises(ValueError, match="at least 10"):
         generate_nilgiris_pilot(grid_size=9)
+
+
+def test_logistic_factory_remains_when_optional_tree_imports_are_blocked(monkeypatch):
+    original_import = builtins.__import__
+
+    def guarded_import(name, *args, **kwargs):
+        if name in {"sklearn.ensemble", "xgboost", "lightgbm"}:
+            raise OSError("simulated Windows library policy block")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", guarded_import)
+
+    factories = _model_factories(seed=42)
+
+    assert list(factories) == ["LogisticRegression"]
 
 
 def test_metrics_include_confusion_and_error_rates():

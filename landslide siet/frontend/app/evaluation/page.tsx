@@ -1,6 +1,12 @@
-import Link from 'next/link';
+'use client';
 
-import { LocationSearch } from '@/components/location-search';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { SiteHeader } from '@/components/site-header';
+import { demoLocations, riskColors, type LocationOption, type RiskLevel } from '@/lib/utils';
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+type Evaluation = { location: { name: string; latitude: number; longitude: number; admin_region?: string }; risk: { score: number; level: RiskLevel; trend: string; model_status?: string }; confidence: { available: boolean; reason?: string }; environment: Record<string, unknown>; terrain: Record<string, unknown>; contributors: Array<{ factor: string; impact: string; direction: string }>; recommendation: { message: string }; timestamp: string };
 
 export default function HomePage() {
   return (

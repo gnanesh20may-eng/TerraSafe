@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,11 +12,12 @@ app = FastAPI(
     title="TerraSafe",
     version="1.0.0",
     description="AI-based landslide early-warning and rescue intelligence platform",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,7 +32,7 @@ def home():
     return {
         "name": "TerraSafe",
         "status": "ok",
-        "phase": "Phase 2",
+        "phase": "Phase 5",
         "message": "AI-based landslide early-warning decision-support platform",
         "disclaimer": "This prototype is for decision support only and does not replace official warning guidance.",
     }

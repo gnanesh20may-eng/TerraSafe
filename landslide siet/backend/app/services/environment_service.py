@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
+from backend.app.config import DEMO_MODE
 from backend.app.providers.base import LocationRef
 from backend.app.providers.satellite import DemoSatelliteProvider
 from backend.app.providers.terrain import DemoTerrainProvider
@@ -22,6 +25,15 @@ class EnvironmentService:
         terrain = self.terrain_provider.get_terrain_features(location)
         satellite = self.satellite_provider.get_satellite_observation(location)
 
+        source_names = [weather.source, terrain.source, satellite.source]
+        demo_sources = [source for source in source_names if source.upper().startswith("DEMO")]
+        if len(demo_sources) == len(source_names):
+            data_status = "DEMO DATA"
+        elif demo_sources:
+            data_status = "MIXED LIVE/DEMO DATA"
+        else:
+            data_status = "LIVE DATA"
+
         return {
             "location": {
                 "id": location.id,
@@ -37,6 +49,7 @@ class EnvironmentService:
                 "wind_speed_kmh": weather.wind_speed_kmh,
                 "temperature_c": weather.temperature_c,
                 "source": weather.source,
+                "observed_at": weather.observed_at,
             },
             "terrain": {
                 "elevation_m": terrain.elevation_m,

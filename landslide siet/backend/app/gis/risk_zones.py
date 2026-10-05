@@ -8,7 +8,7 @@ from typing import Any
 class RiskSignals:
     rainfall_24h_mm: float
     rainfall_7d_mm: float
-    soil_moisture_pct: float
+    soil_moisture_pct: float | None
     slope_deg: float
     ndvi: float
     elevation_m: float
@@ -44,10 +44,11 @@ def calculate_risk_score(signals: RiskSignals) -> dict[str, Any]:
         rainfall_score += 10
 
     moisture_score = 0.0
-    if signals.soil_moisture_pct >= 70:
-        moisture_score += 18
-    elif signals.soil_moisture_pct >= 55:
-        moisture_score += 10
+    if signals.soil_moisture_pct is not None:
+        if signals.soil_moisture_pct >= 70:
+            moisture_score += 18
+        elif signals.soil_moisture_pct >= 55:
+            moisture_score += 10
 
     slope_score = 0.0
     if signals.slope_deg >= 30:
@@ -77,7 +78,7 @@ def calculate_risk_score(signals: RiskSignals) -> dict[str, Any]:
     reasons: list[str] = []
     if signals.rainfall_24h_mm >= 60:
         reasons.append("Heavy 24-hour rainfall")
-    if signals.soil_moisture_pct >= 70:
+    if signals.soil_moisture_pct is not None and signals.soil_moisture_pct >= 70:
         reasons.append("Saturated soil")
     if signals.slope_deg >= 30:
         reasons.append("Steep terrain")
@@ -97,8 +98,9 @@ def calculate_risk_score(signals: RiskSignals) -> dict[str, Any]:
 
 
 def build_risk_zone_feature(location_name: str, latitude: float, longitude: float, score: float) -> dict[str, Any]:
-    zone = classify_level(score)
-    radius = 0.015 + (score / 100) * 0.04
+    bounded_score = max(0.0, min(100.0, score))
+    zone = classify_level(bounded_score)
+    radius = 0.015 + (bounded_score / 100) * 0.04
     polygon = [
         [longitude - radius, latitude - radius],
         [longitude + radius, latitude - radius],
@@ -111,7 +113,7 @@ def build_risk_zone_feature(location_name: str, latitude: float, longitude: floa
         "geometry": {"type": "Polygon", "coordinates": [polygon]},
         "properties": {
             "location": location_name,
-            "score": round(score),
+            "score": round(bounded_score),
             "zone": zone,
             "risk_level": zone,
             "source": "DEMO GIS ZONE",
