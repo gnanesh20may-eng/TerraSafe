@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from backend.app.alert_engine import alert_engine
 from backend.app.api.schemas import AlertCreate, AlertTransition, SimulationRequest
 from backend.app.core.auth import current_principal, require_roles
+from backend.app.config import DEMO_MODE
 from backend.app.gis.risk_zones import build_risk_zone_geojson
 from backend.app.providers.base import LocationRef, ProviderUnavailableError
 from backend.app.services.environment_service import environment_service
@@ -80,11 +81,16 @@ def get_location_by_id(location_id: str) -> dict | None:
 
 @router.get("/health")
 def health():
+    weather_provider = environment_service.weather_provider
     return {
         "status": "ok",
-        "service": "landsense-api",
+        "service": "terrasafe-api",
         "environment": "development",
-        "demo_mode": True,
+        "demo_mode": DEMO_MODE,
+        "weather_source": "DEMO WEATHER PROVIDER" if DEMO_MODE else "OPEN-METEO API",
+        "terrain_source": "DEMO TERRAIN PROVIDER",
+        "satellite_source": "DEMO SATELLITE PROVIDER",
+        "configured_weather_provider": type(weather_provider).__name__,
     }
 
 
@@ -141,14 +147,9 @@ def get_risk(location_id: str):
 
 @router.get("/risk/{location_id}/history")
 def get_risk_history(location_id: str):
-    return {
-        "location_id": location_id,
-        "history": [
-            {"timestamp": "2026-10-05T09:00:00Z", "score": 58, "level": "HIGH"},
-            {"timestamp": "2026-10-05T10:00:00Z", "score": 63, "level": "HIGH"},
-            {"timestamp": "2026-10-05T12:00:00Z", "score": 68, "level": "HIGH"},
-        ],
-    }
+    if get_location_by_id(location_id) is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return {"location_id": location_id, "status": "MISSING", "history": []}
 
 
 @router.get("/environment/{location_id}")
