@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">டெராசெஃப் (TerraSafe)</string>
+    <string name="nav_home">முகப்பு</string>
+    <string name="nav_evaluation">மதிப்பீடு</string>
+    <string name="nav_rescue">மீட்பு மையம்</string>
+    <string name="nav_alerts">எச்சரிக்கைகள்</string>
+    <string name="nav_places">என் இடங்கள்</string>
+    <string name="nav_settings">அமைப்புகள்</string>
+    <string name="nav_about">பற்றி</string>
+    <string name="disclaimer">செயற்கை நுண்ணறிவு அடிப்படையிலான ஆபத்து மதிப்பீடு. இது அதிகாரப்பூர்வ பேரிடர் மேலாண்மை எச்சரிக்கைகளுக்கு மாற்றமல்ல.</string>
+</resources>

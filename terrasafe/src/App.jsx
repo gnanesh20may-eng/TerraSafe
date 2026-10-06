@@ -38,6 +38,8 @@ function App() {
     { id: 'home', name: 'Home', area: 'Coimbatore', type: 'Home' },
     { id: 'college', name: 'College', area: 'Ooty', type: 'College' },
   ]))
+  const [apiSavedPlaces, setApiSavedPlaces] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0)
   const [settings, setSettings] = useState(() => getStored('terrasafe.settings', {
     earlyWarnings: true, locationAlerts: true, terrain3d: true, satellite: false,
     units: 'Metric', theme: 'Light', language: 'English',
@@ -46,6 +48,19 @@ function App() {
   useEffect(() => { setStored('terrasafe.area', selectedArea) }, [selectedArea])
   useEffect(() => { setStored('terrasafe.places', savedPlaces) }, [savedPlaces])
   useEffect(() => { setStored('terrasafe.settings', settings) }, [settings])
+  useEffect(() => {
+    async function fetchApiSavedPlaces() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/saved-places`)
+        const data = await res.json()
+        setApiSavedPlaces(data.places || [])
+        setRefreshKey((k) => k + 1)
+      } catch (err) {
+        console.warn('Failed to fetch saved places from API:', err)
+      }
+    }
+    fetchApiSavedPlaces()
+  }, [refreshKey])
   useEffect(() => {
     const showNotice = (event) => toast(event.detail)
     window.addEventListener('terrasafe-toast', showNotice)
@@ -113,7 +128,7 @@ function AppFrame(props) {
                 <Route path="/evaluation" element={<Evaluation selectedArea={props.selectedArea} />} />
                 <Route path="/rescue" element={<Rescue selectedArea={props.selectedArea} />} />
                 <Route path="/alerts" element={<AlertsPage selectedArea={props.selectedArea} settings={props.settings} />} />
-                <Route path="/places" element={<Places {...props} />} />
+                <Route path="/places" element={<Places selectedArea={props.selectedArea} apiSavedPlaces={apiSavedPlaces} setApiSavedPlaces={setApiSavedPlaces} setSelectedArea={props.setSelectedArea} />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/settings" element={<SettingsPage settings={props.settings} setSettings={props.setSettings} />} />
                 <Route path="*" element={<Dashboard {...props} />} />
@@ -330,20 +345,61 @@ function EmergencyAction({ icon: Icon, color, title, text, onClick }) {
   return <button className="emergency-action" onClick={onClick}><span className={`emergency-icon ${color}`}><Icon size={20} /></span><span><strong>{title}</strong><small>{text}</small></span><ArrowRight size={17} /></button>
 }
 
-function Places({ selectedArea, savedPlaces, setSavedPlaces, setSelectedArea }) {
+function Places({ selectedArea, apiSavedPlaces, setApiSavedPlaces, setSelectedArea }) {
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newArea, setNewArea] = useState(areas[0].name)
   const [editingId, setEditingId] = useState(null)
-  const addPlace = (event) => { event.preventDefault(); if (!newName.trim()) return; setSavedPlaces([...savedPlaces, { id: `${Date.now()}`, name: newName.trim(), area: newArea, type: 'Custom' }]); setNewName(''); setAdding(false); toast.success('Place saved') }
-  const [editingPlace, setEditingPlace] = useState(null)
-  const updatePlace = (event) => { event.preventDefault(); if (!newName.trim() || !editingPlace) return; setSavedPlaces(savedPlaces.map((item) => item.id === editingPlace.id ? { ...item, name: newName.trim() } : item)); setNewName(''); setEditingPlace(null); setEditingId(null); toast.success('Place updated') }
-  return <><PageHeading eyebrow="THE PLACES THAT MATTER" title="My places" subtitle="Keep an eye on home, work, and the places you care about." action={<button className="button button-dark" onClick={() => setAdding(true)}><Plus size={16} /> Add a place</button>} />
-    <div className="places-current"><span className="location-pin"><MapPin size={15} /></span><div><small>YOU’RE CURRENTLY CHECKING</small><strong>{selectedArea.name}</strong></div><span className="current-pill">ACTIVE</span></div>
-    {savedPlaces.length ? <div className="places-grid">{savedPlaces.map((place, index) => { const area = areas.find((item) => item.name === place.area) || areas[0]; const placeRisk = getAreaRisk(area); return <article className="place-card" key={place.id}><div className="place-card-top"><span className={`place-type-icon place-type-${index % 4}`}>{place.type === 'Home' ? <Home size={18} /> : place.type === 'College' ? <Bookmark size={18} /> : place.type === 'Family' ? <Shield size={18} /> : <MapPin size={18} />}</span><button className="icon-button subtle" aria-label={`Options for ${place.name}`} onClick={() => setEditingId(editingId === place.id ? null : place.id)}><Menu size={17} /></button>{editingId === place.id && <div className="place-options"><button onClick={() => { setNewName(place.name); setEditingPlace(place); setEditingId(null) }}>Edit name</button><button className="delete-option" onClick={() => { setSavedPlaces(savedPlaces.filter((item) => item.id !== place.id)); toast('Place removed') }}>Remove place</button></div>}</div><span className="place-type-label">{place.type}</span><h2>{place.name}</h2><p><MapPin size={14} /> {place.area}</p><div className={`place-risk place-risk-${placeRisk.key}`}><span className="risk-orb" /><strong>{placeRisk.label}</strong><small>Current outlook</small></div><button className="place-check" onClick={() => { setSelectedArea(area); toast.success(`Now checking ${area.name}`) }}>Check this area <ArrowRight size={15} /></button></article> })}</div> : <div className="empty-state"><span><MapPin size={22} /></span><h2>No saved places yet.</h2><p>Add Home or College to quickly monitor your important areas.</p><button className="button button-dark" onClick={() => setAdding(true)}><Plus size={16} /> Add a place</button></div>}
-    {(adding || editingPlace) && <div className="modal-backdrop" role="presentation" onClick={() => { setAdding(false); setEditingPlace(null) }}><form className="place-modal" onSubmit={editingPlace ? updatePlace : addPlace} onClick={(event) => event.stopPropagation()}><div className="modal-heading"><div><span className="eyebrow">MY PLACES</span><h2>{editingPlace ? 'Edit place' : 'Add a place'}</h2></div><button type="button" className="icon-button subtle" aria-label="Close dialog" onClick={() => { setAdding(false); setEditingPlace(null) }}><X size={18} /></button></div><label>Place name<input autoFocus value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="e.g. Family home" required /></label>{!editingPlace && <label>Area<select value={newArea} onChange={(event) => setNewArea(event.target.value)}>{areas.map((area) => <option key={area.name}>{area.name}</option>)}</select></label>}<div className="modal-actions"><button type="button" className="button button-quiet" onClick={() => { setAdding(false); setEditingPlace(null) }}>Cancel</button><button className="button button-dark" type="submit"><Check size={16} /> {editingPlace ? 'Save changes' : 'Save place'}</button></div></form></div>}
-  </>
-}
+  const [apiSavedPlaces, setApiSavedPlaces] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    async function fetchSavedPlaces() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/saved-places`)
+        const data = await res.json()
+        setApiSavedPlaces(data.places || [])
+        setRefreshKey((refreshKey) => refreshKey + 1)
+      } catch (err) {
+        console.warn('Failed to fetch saved places:', err)
+      }
+    }
+    fetchSavedPlaces()
+  }, [refreshKey])
+
+  const addPlace = async (event) => {
+    event.preventDefault()
+    if (!newName.trim()) return
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/saved-places`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName.trim(), area: newArea, type: "Custom" })
+      })
+      const data = await res.json()
+      setApiSavedPlaces((prev) => [...prev, data])
+      toast.success(`Place saved: ${data.name}`)
+      setNewName("")
+      setAdding(false)
+    } catch (err) {
+      toast.error("Failed to save place")
+    }
+  }
+
+  const removePlace = async (placeId) => {
+    try {
+      await fetch(`${API_BASE}/api/v1/saved-places/${placeId}`, { method: "DELETE" })
+      setApiSavedPlaces((prev) => prev.filter((p) => p.id !== placeId))
+      toast.success("Place removed")
+    } catch (err) {
+      toast.error("Failed to remove place")
+    }
+  }
+
+  const saveCurrent = () => {
+    if (apiSavedPlaces.some((p) => p.area === selectedArea.name)) return toast("This area is already saved.")
+    addPlace()
+  }
 
 function SettingsPage({ settings, setSettings }) {
   const update = (key, value) => { setSettings({ ...settings, [key]: value }); toast.success('Preference saved') }
@@ -362,3 +418,4 @@ function SettingSelect({ title, value, options, onChange }) { return <label clas
 function scenarioLabel(value) { return value < 25 ? 'Light' : value < 52 ? 'Steady' : value < 78 ? 'Heavy' : 'Extreme' }
 
 export default App
+
