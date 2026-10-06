@@ -12,6 +12,12 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from backend.app.config import (
+    check_false_alarm,
+    config,
+    get_alert_confidence,
+    get_risk_level,
+)
 from backend.app.ml.dynamic_risk import (
     antecedent_rainfall,
     hybrid_dynamic_risk,
@@ -189,6 +195,21 @@ def infer_risk(
         "description": "Antecedent rainfall memory; not a calibrated soil-memory model.",
     }
     factors = _top_logistic_factors(model, frame)
+    # Convert 0-1 probability to 0-100 risk score
+    risk_score_100 = int(round(risk["risk_score"] * 100))
+    risk_level = get_risk_level(risk_score_100)
+    
+    # Count supporting factors for false-alarm rule
+    supporting_factors = len([f for f in factors if f.get("contribution", 0) > 0])
+    false_alarm_check = check_false_alarm(risk_score_100, supporting_factors)
+    
+    # Calculate alert confidence
+    alert_confidence = get_alert_confidence(
+        risk_score_100, 
+        supporting_factors, 
+        model_status
+    )
+    
     result = {
         "status": model_status,
         "model": {
@@ -196,7 +217,14 @@ def infer_risk(
             "artifact": "trusted_export" if model_status == "SCAFFOLD" else "synthetic_fallback",
             "susceptibility_probability": round(probability, 4),
         },
-        "risk": risk,
+        "risk": {
+            **risk,
+            "risk_score_100": risk_score_100,
+            "risk_level": risk_level,
+            "label": f"{risk_level} ({risk_score_100}/100)",
+        },
+        "false_alarm_check": false_alarm_check,
+        "alert_confidence": alert_confidence,
         "uncertainty": uncertainty,
         "top_factors": factors,
         "rainfall": {
@@ -211,7 +239,11 @@ def infer_risk(
         "slope_memory": memory,
         "model_disagreement": disagreement,
         "why": plain_language_risk_explanation(risk),
-        "disclaimer": risk["disclaimer"],
+        "counterfactuals": _generate_counterfactuals(model, frame, factors),
+        "disclaimer": (
+            "AI-based risk estimation. Early-warning decision support. "
+            "This prototype does not replace official disaster-management warnings."
+        ),
     }
     return result
 
@@ -240,6 +272,69 @@ def _top_logistic_factors(
     scaler = next((step for step in steps.values() if hasattr(step, "scale_")), None)
     if classifier is None:
         return []
+
+    if not hasattr(classifier, "coef_"):
+        importances = np.asarray(classifier.feature_importances_, dtype=float)
+        indexes = np.argsort(importances)[::-1][:limit]
+        return [
+            {
+                "feature": str(frame.columns[index]),
+                "value": float(frame.iloc[0, index]),
+                "contribution": float(importances[index]),
+                "method": "model feature importance; not causal",
+            }
+            for index in indexes
+        ]
+    coefficients = np.asarray(classifier.coef_)[0]
+    values = frame.iloc[0].to_numpy(dtype=float)
+    if scaler is not None:
+        values = (values - np.asarray(scaler.mean_)) / np.asarray(scaler.scale_)
+    contributions = coefficients * values
+    indexes = np.argsort(np.abs(contributions))[::-1][:limit]
+    return [
+        {
+            "feature": str(frame.columns[index]),
+            "value": float(frame.iloc[0, index]),
+            "contribution": float(contributions[index]),
+            "method": "linear model coefficient contribution; not causal",
+        }
+        for index in indexes
+    ]
+
+
+def _generate_counterfactuals(
+    model: Any, frame: pd.DataFrame, factors: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Generate counterfactual explanations: what would reduce risk."""
+    counterfactuals = []
+    
+    # For each top factor, suggest a change that would reduce risk
+    for factor in factors[:2]:  # Top 2 factors
+        feature = factor["feature"]
+        contribution = factor["contribution"]
+        
+        if contribution > 0:  # Positive contribution = increases risk
+            # Suggest reducing this feature
+            counterfactuals.append({
+                "action": f"Reduce {feature.replace('_', ' ')}",
+                "current_value": factor["value"],
+                "suggested_change": "Reduce by 10-20%",
+                "estimated_risk_reduction": round(abs(contribution) * 10, 1),
+                "confidence": "MEDIUM",
+                "note": "Based on model coefficients; not a guaranteed outcome"
+            })
+        elif contribution < 0:  # Negative contribution = decreases risk
+            # Suggest increasing this protective factor
+            counterfactuals.append({
+                "action": f"Increase {feature.replace('_', ' ')}",
+                "current_value": factor["value"],
+                "suggested_change": "Increase by 10-20%",
+                "estimated_risk_reduction": round(abs(contribution) * 10, 1),
+                "confidence": "MEDIUM",
+                "note": "Based on model coefficients; not a guaranteed outcome"
+            })
+    
+    return counterfactuals
     if not hasattr(classifier, "coef_"):
         importances = np.asarray(classifier.feature_importances_, dtype=float)
         indexes = np.argsort(importances)[::-1][:limit]

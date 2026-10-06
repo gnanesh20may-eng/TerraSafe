@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 // API URL from Vercel env var (VITE_API_URL=/api/v1 in production)
 const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
-import { X, Check, Phone, MapPin, AlertTriangle, Battery, Sun, Moon, Volume2, Mic, Shield, Map, MapPin as MapPinIcon, Menu, Loader2, Pause, Play, AlertCircle, AidKit, Users, Heart, Pulse, Zap, Info, ExclamationCircle, Location, Mail, PhoneForward, MessageCircle, PhoneCall, PhoneForwardIncoming, Eye, EyeOff } from 'lucide-react'
+import { X, Check, Phone, MapPin, AlertTriangle, Battery, Sun, Moon, Volume2, Mic, Shield, Map, MapPin as MapPinIcon, Menu, Loader2, Pause, Play, AlertCircle, Users, Heart, Zap, Info, Mail, MessageCircle, PhoneCall, Eye, EyeOff } from 'lucide-react'
 
 function EmergencyPanel({ emergencyMode, onStop, onCondition, lastLocation, locationTimestamp }) {
   const [showPanel, setShowPanel] = useState(false)
@@ -276,11 +276,11 @@ SOS: I am affected by a landslide. My last known location is being shared with r
           <div className="rescue-comm">
             <p><strong>Quick Communication:</strong></p>
             <div className="rescue-comm-options">
-              <button className="comm-option" onclick="alert('Feature: Send "I can hear you" to rescue team')">I can hear you</button>
-              <button className="comm-option" onclick="alert('Feature: Send "I need medical help" to rescue team')">I need medical help</button>
-              <button className="comm-option" onclick="alert('Feature: Send "There are 3 people" to rescue team')">There are 3 people</button>
-              <button className="comm-option" onclick="alert('Feature: Send "I am inside a building" to rescue team')">I am inside a building</button>
-              <button className="comm-option" onclick="alert('Feature: Send "I hear rescuers" to rescue team')">I hear rescuers</button>
+              <button className="comm-option" onClick={() => alert('Feature: Send "I can hear you" to rescue team')}>I can hear you</button>
+              <button className="comm-option" onClick={() => alert('Feature: Send "I need medical help" to rescue team')}>I need medical help</button>
+              <button className="comm-option" onClick={() => alert('Feature: Send "There are 3 people" to rescue team')}>There are 3 people</button>
+              <button className="comm-option" onClick={() => alert('Feature: Send "I am inside a building" to rescue team')}>I am inside a building</button>
+              <button className="comm-option" onClick={() => alert('Feature: Send "I hear rescuers" to rescue team')}>I hear rescuers</button>
             </div>
           </div>
         )}

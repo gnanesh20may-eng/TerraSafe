@@ -7,6 +7,8 @@ import {
   Check, ChevronDown, CircleHelp, CloudRain, Compass, Flame, Home, Layers, LocateFixed,
   Map as MapIcon, MapPin, Menu, Mountain, Navigation, Plus, Search, Settings as SettingsIcon,
   Shield, ShieldCheck, SlidersHorizontal, Sparkles, Wind, X,
+  Bell as BellIcon,
+  Info,
 } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import TerrainMap from './components/TerrainMap.jsx'
@@ -14,6 +16,9 @@ import { areas, getAreaRisk, getRiskCopy, signals, safeZones, timelineData } fro
 import { getStored, setStored } from './services/appService.js'
 import './App.css'
 import EmergencyQuickStart from './components/EmergencyQuickStart'
+import EmergencyPanel from './components/EmergencyPanel'
+import AlertsPage from './components/AlertsPage'
+import AboutPage from './components/AboutPage'
 
 // API URL from Vercel env var (VITE_API_URL=/api/v1 in production)
 const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
@@ -22,7 +27,9 @@ const navItems = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/evaluation', label: 'Evaluation', icon: Activity },
   { to: '/rescue', label: 'Rescue hub', icon: ShieldCheck },
+  { to: '/alerts', label: 'Alerts', icon: BellIcon },
   { to: '/places', label: 'My places', icon: Bookmark },
+  { to: '/about', label: 'About', icon: Info },
 ]
 
 function App() {
@@ -105,7 +112,9 @@ function AppFrame(props) {
                 <Route path="/" element={<Dashboard {...props} />} />
                 <Route path="/evaluation" element={<Evaluation selectedArea={props.selectedArea} />} />
                 <Route path="/rescue" element={<Rescue selectedArea={props.selectedArea} />} />
+                <Route path="/alerts" element={<AlertsPage selectedArea={props.selectedArea} settings={props.settings} />} />
                 <Route path="/places" element={<Places {...props} />} />
+                <Route path="/about" element={<AboutPage />} />
                 <Route path="/settings" element={<SettingsPage settings={props.settings} setSettings={props.setSettings} />} />
                 <Route path="*" element={<Dashboard {...props} />} />
               </Routes>

@@ -103,7 +103,7 @@ def test_inference_returns_labeled_probability_triggers_uncertainty_and_why(tmp_
     assert result["model_disagreement"]["flag"] is True
     assert result["top_factors"]
     assert result["why"]
-    assert "official IMD, NDMA, and GSI warnings" in result["disclaimer"]
+    assert "official disaster-management warnings" in result["disclaimer"]
 
 
 def test_inference_rejects_missing_and_non_finite_features(tmp_path):

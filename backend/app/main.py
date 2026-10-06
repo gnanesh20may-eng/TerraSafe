@@ -42,6 +42,7 @@ from backend.app.alerts.schemas import (
     SmsInbound,
     SosCreate,
 )
+from backend.app.config import config, get_risk_level, get_risk_color, get_vulnerable_priority
 from backend.app.data_sources import get_source_health
 from backend.app.database import Base, engine, get_db
 from backend.app.ml.inference import infer_risk
@@ -122,6 +123,16 @@ def _get_alert(db: Session, alert_id: str) -> Alert:
 
 @app.get("/health", tags=["health"])
 def health(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {
+        "status": "LIVE",
+        "database": "LIVE",
+        "disclaimer": "Service health is not a warning or safety assessment.",
+    }
+
+
+@app.get("/api/v1/health", tags=["health"])
+def health_v1(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {
         "status": "LIVE",
@@ -531,6 +542,355 @@ def inbound_sms(request: SmsInbound, db: Session = Depends(get_db)):
         "status": "DEMO",
         "reply": f"DEMO risk {alert.risk_level} for {alert.location}. Follow official IMD/NDMA/GSI warnings.",
         "provider": "mock",
+    }
+
+
+@app.get("/api/v1/health", tags=["health"])
+def health_v1(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {
+        "status": "LIVE",
+        "database": "LIVE",
+        "disclaimer": "Service health is not a warning or safety assessment.",
+    }
+
+
+@app.get("/api/v1/config/risk-thresholds", tags=["config"])
+def get_risk_thresholds():
+    """Get unified risk thresholds (0-100 scale)."""
+    return {
+        "thresholds": {
+            "LOW": {"max": config.risk_thresholds.low_max, "color": get_risk_color("LOW")},
+            "WATCH": {"max": config.risk_thresholds.watch_max, "color": get_risk_color("WATCH")},
+            "HIGH": {"max": config.risk_thresholds.high_max, "color": get_risk_color("HIGH")},
+            "CRITICAL": {"min": config.risk_thresholds.high_max + 1, "max": 100, "color": get_risk_color("CRITICAL")},
+        },
+        "false_alarm": {
+            "critical_min_supporting_factors": config.false_alarm.critical_min_supporting_factors,
+            "confidence_threshold": config.false_alarm.confidence_threshold,
+        },
+        "alert_states": {
+            "states": config.alert_states.states,
+            "transitions": config.alert_states.transitions,
+        },
+        "vulnerable_priority": {
+            "priority_1_threshold": config.vulnerable_priority.priority_1_threshold,
+            "priority_2_threshold": config.vulnerable_priority.priority_2_threshold,
+            "priority_3_threshold": config.vulnerable_priority.priority_3_threshold,
+        },
+        "disclaimer": "AI-based risk estimation. Early-warning decision support. This prototype does not replace official disaster-management warnings.",
+    }
+
+
+@app.get("/api/v1/locations/search", tags=["locations"])
+def search_locations(q: str = Query(..., min_length=1, max_length=100)):
+    """Search for locations by name."""
+    # Demo: search in Nilgiris pilot zones
+    pilot = generate_nilgiris_pilot(grid_size=10)
+    results = []
+    q_lower = q.lower()
+    for _, cell in pilot.cells.iterrows():
+        location = f"Nilgiris demo zone {int(cell['latitude']*1000)%100}-{int(cell['longitude']*1000)%100}"
+        if q_lower in location.lower() or q_lower in "nilgiris":
+            results.append({
+                "id": f"nilgiris-{int(cell['latitude']*1000)%100}-{int(cell['longitude']*1000)%100}",
+                "name": location,
+                "latitude": float(cell["latitude"]),
+                "longitude": float(cell["longitude"]),
+                "region": "Nilgiris, Tamil Nadu",
+                "status": "DEMO",
+            })
+    return {"results": results[:10], "status": "DEMO"}
+
+
+@app.get("/api/v1/risk/{zone_id}", tags=["risk"])
+def get_risk(zone_id: str, db: Session = Depends(get_db)):
+    """Get risk assessment for a zone."""
+    # Find zone in pilot
+    pilot = generate_nilgiris_pilot(grid_size=10)
+    weather = {"status": "DEMO", "reason": "demo_fallback"}
+    zones = build_nilgiris_risk_zones(
+        weather=weather,
+        infer_risk=infer_risk,
+        generate_pilot=generate_nilgiris_pilot,
+    )
+    
+    for zone in zones:
+        if zone["zone_id"] == zone_id:
+            return {
+                **zone,
+                "vulnerable_priority": get_vulnerable_priority(zone["risk_score"]),
+                "disclaimer": "AI-based risk estimation. Early-warning decision support. This prototype does not replace official disaster-management warnings.",
+            }
+    
+    raise HTTPException(status_code=404, detail="Zone not found")
+
+
+@app.get("/api/v1/risk/{zone_id}/history", tags=["risk"])
+def get_risk_history(zone_id: str, days: int = Query(default=7, ge=1, le=30)):
+    """Get risk history for a zone."""
+    # Demo: generate synthetic history
+    import random
+    from datetime import timedelta
+    base_score = 50
+    history = []
+    for i in range(days):
+        date_val = (datetime.now(timezone.utc) - timedelta(days=days-i)).date()
+        variation = random.randint(-10, 10)
+        score = max(0, min(100, base_score + variation))
+        history.append({
+            "date": date_val.isoformat(),
+            "risk_score": score,
+            "risk_level": get_risk_level(score),
+            "status": "SIMULATED",
+        })
+    return {"zone_id": zone_id, "history": history, "status": "SIMULATED"}
+
+
+@app.get("/api/v1/risk/{zone_id}/counterfactual", tags=["risk"])
+def get_counterfactual(zone_id: str):
+    """Get counterfactual analysis for a zone."""
+    # Use infer_risk to get counterfactuals
+    pilot = generate_nilgiris_pilot(grid_size=10)
+    parts = zone_id.replace("nilgiris-", "").split("-")
+    if len(parts) != 2:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    try:
+        row_idx = int(parts[0])
+        col_idx = int(parts[1])
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid zone ID")
+    
+    cell_index = row_idx * 10 + col_idx
+    if cell_index >= len(pilot.cells):
+        raise HTTPException(status_code=404, detail="Zone not found")
+    
+    cell = pilot.cells.iloc[cell_index]
+    observation = {name: float(cell[name]) for name in FEATURE_COLUMNS}
+    result = infer_risk(observation, zone=zone_id)
+    
+    return {
+        "zone_id": zone_id,
+        "counterfactuals": result.get("counterfactuals", []),
+        "current_risk": {
+            "score": result["risk"]["risk_score_100"],
+            "level": result["risk"]["risk_level"],
+        },
+        "top_factors": result.get("top_factors", []),
+        "disclaimer": "Counterfactuals are model-based estimates; not guaranteed outcomes.",
+    }
+
+
+@app.post("/api/v1/simulate", tags=["simulation"])
+def simulate_scenario(request: ScenarioInput):
+    """Return a deterministic what-if index, never a live warning."""
+    rainfall_trigger = min(1.0, request.rainfall_mm / (request.duration_hours * 2))
+    earthquake_trigger = (
+        min(1.0, max(0.0, (request.earthquake_magnitude - 2) / 5))
+        if request.earthquake_magnitude is not None
+        else 0.0
+    )
+    score = min(
+        1.0,
+        request.baseline_score
+        + 0.3 * rainfall_trigger
+        + 0.2 * earthquake_trigger
+        + (0.1 if request.road_cut else 0),
+    )
+    risk_score_100 = int(round(score * 100))
+    risk_level = get_risk_level(risk_score_100)
+    
+    # Apply false-alarm check
+    false_alarm = check_false_alarm(risk_score_100, 1)  # Demo: 1 supporting factor
+    confidence = get_alert_confidence(risk_score_100, 1, "SIMULATED")
+    
+    return {
+        "status": "SIMULATED",
+        "risk_score": round(score, 4),
+        "risk_score_100": risk_score_100,
+        "risk_level": risk_level,
+        "false_alarm_check": false_alarm,
+        "alert_confidence": confidence,
+        "inputs": request.model_dump(),
+        "method": "transparent demonstration scenario; not calibrated",
+        "disclaimer": "AI-based risk estimation. Early-warning decision support. This prototype does not replace official disaster-management warnings.",
+    }
+
+
+@app.get("/api/v1/map/risk-zones", tags=["map"])
+async def get_map_risk_zones(location: str = Query(default="Nilgiris")):
+    """Get risk zones for map display."""
+    if location.casefold() not in {"nilgiris", "nilgiris-tamil-nadu"}:
+        return {
+            "location": location,
+            "status": "MISSING",
+            "zones": [],
+            "message": "No verified terrain or configured weather location is available.",
+            "disclaimer": "AI-based risk estimation. Early-warning decision support. This prototype does not replace official disaster-management warnings.",
+        }
+    weather = await fetch_open_meteo_weather(latitude=11.35, longitude=76.7)
+    zones = build_nilgiris_risk_zones(
+        weather=weather,
+        infer_risk=infer_risk,
+        generate_pilot=generate_nilgiris_pilot,
+    )
+    # Add vulnerable priority to each zone
+    for zone in zones:
+        zone["vulnerable_priority"] = get_vulnerable_priority(zone["risk_score"])
+    return {
+        "location": "Nilgiris, Tamil Nadu",
+        "status": "DEMO",
+        "weather": {
+            key: weather.get(key)
+            for key in (
+                "status",
+                "reason",
+                "provider",
+                "fetched_at",
+                "data_timestamp",
+                "precipitation_mm",
+                "soil_moisture_fraction",
+                "seven_day_trend",
+            )
+        },
+        "zones": zones,
+        "zone_geometry_status": "SIMULATED",
+        "disclaimer": "AI-based risk estimation. Early-warning decision support. This prototype does not replace official disaster-management warnings.",
+    }
+
+
+@app.get("/api/v1/safe-zones", tags=["safe-zones"])
+def get_safe_zones(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    radius_km: float = Query(default=10, gt=0, le=50),
+):
+    """Get safe zones near a location."""
+    # Demo: return simulated shelters
+    shelters = []
+    for shelter in SIMULATED_SHELTERS:
+        # Add distance calculation (simplified)
+        shelters.append({
+            **shelter,
+            "distance_km": round(abs(latitude - shelter["latitude"]) * 111 + abs(longitude - shelter["longitude"]) * 111, 1),
+            "status": "SIMULATED",
+        })
+    shelters.sort(key=lambda s: s["distance_km"])
+    return {
+        "location": {"latitude": latitude, "longitude": longitude},
+        "radius_km": radius_km,
+        "shelters": shelters[:5],
+        "status": "SIMULATED",
+        "disclaimer": "Safe zones are simulated. Confirm with local authorities.",
+    }
+
+
+@app.get("/api/v1/rescue/nearby", tags=["rescue"])
+def get_rescue_nearby(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+):
+    """Get nearby rescue resources."""
+    return {
+        "location": {"latitude": latitude, "longitude": longitude},
+        "resources": [
+            {"type": "shelter", "name": "Community Hall", "distance_km": 2.1, "capacity": 50, "status": "SIMULATED"},
+            {"type": "medical", "name": "Primary Health Center", "distance_km": 3.5, "capacity": 20, "status": "SIMULATED"},
+            {"type": "rescue_team", "name": "Fire Station", "distance_km": 4.2, "status": "SIMULATED"},
+        ],
+        "status": "SIMULATED",
+        "disclaimer": "Rescue resources are simulated. Contact local emergency services.",
+    }
+
+
+@app.get("/api/v1/rescue/route", tags=["rescue"])
+def get_rescue_route(
+    latitude: float = Query(..., ge=-90, le=90),
+    longitude: float = Query(..., ge=-180, le=180),
+    destination_lat: float = Query(..., ge=-90, le=90),
+    destination_lon: float = Query(..., ge=-180, le=180),
+):
+    """Get rescue route (abstraction)."""
+    adapter = MockOpenRouteServiceAdapter()
+    route = adapter.nearest_route(latitude, longitude)
+    return {
+        "origin": {"latitude": latitude, "longitude": longitude},
+        "destination": {"latitude": destination_lat, "longitude": destination_lon},
+        "route": {
+            "distance_km": route.get("distance_km", 5.0),
+            "duration_min": route.get("duration_min", 15),
+            "geometry": route.get("geometry", []),
+            "status": "SIMULATED",
+        },
+        "disclaimer": "Route is simulated. Use official navigation for actual emergencies.",
+    }
+
+
+@app.get("/api/v1/alerts/preferences", tags=["alerts"])
+def get_alert_preferences(
+    _actor: dict[str, Any] = Depends(require_roles("admin", "district_officer", "field_responder")),
+):
+    """Get alert preferences (stub)."""
+    return {
+        "preferences": {
+            "notify_on_critical": True,
+            "notify_on_high": True,
+            "notify_on_watch": False,
+            "channels": ["push", "email", "sms"],
+            "quiet_hours": {"start": "22:00", "end": "06:00"},
+            "language": "en",
+        },
+        "status": "DEMO",
+    }
+
+
+@app.get("/api/v1/data-sources", tags=["data"])
+def get_data_sources():
+    """Get data source health and metadata."""
+    return get_source_health()
+
+
+@app.post("/api/v1/copilot", tags=["copilot"])
+def copilot_query(
+    question: str = Query(..., min_length=1, max_length=500),
+    zone_id: str | None = Query(default=None),
+):
+    """Copilot answers only from engine data (no invented numbers)."""
+    # Simple keyword-based responses from engine data
+    q_lower = question.lower()
+    
+    if "risk" in q_lower and zone_id:
+        pilot = generate_nilgiris_pilot(grid_size=10)
+        parts = zone_id.replace("nilgiris-", "").split("-")
+        if len(parts) == 2:
+            try:
+                cell_index = int(parts[0]) * 10 + int(parts[1])
+                if cell_index < len(pilot.cells):
+                    cell = pilot.cells.iloc[cell_index]
+                    observation = {name: float(cell[name]) for name in FEATURE_COLUMNS}
+                    result = infer_risk(observation, zone=zone_id)
+                    risk = result["risk"]
+                    return {
+                        "answer": f"Zone {zone_id} is at {risk['risk_level']} risk (score: {risk['risk_score_100']}/100). "
+                                f"Top factors: {', '.join([f['feature'] for f in result.get('top_factors', [])[:2]])}. "
+                                f"Alert confidence: {result['alert_confidence']*100:.0f}%.",
+                        "data": {
+                            "risk_score": risk["risk_score_100"],
+                            "risk_level": risk["risk_level"],
+                            "confidence": risk["alert_confidence"],
+                            "top_factors": result.get("top_factors", []),
+                        },
+                        "source": "engine",
+                        "status": "DEMO",
+                    }
+            except (ValueError, IndexError):
+                pass
+    
+    return {
+        "answer": "I can answer questions about risk scores, factors, and simulations for specific zones. "
+                  "Try asking 'What is the risk for zone nilgiris-1-2?'",
+        "source": "engine",
+        "status": "DEMO",
     }
 
 

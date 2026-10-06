@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Check, Phone, MapPin, Heart, AidKit, Users, AlertTriangle, Moon, Battery, Sun, Volume2, Moon as MoonIcon, Mic, Shield, Map, MapPin as MapPinIcon, Menu, Loader2, Pause, Play, AlertCircle, Eye, EyeOff, Location, Mail, PhoneForward, MessageCircle, PhoneCall, PhoneForwardIncoming, Info, ExclamationCircle } from 'lucide-react'
+import { X, Check, Phone, MapPin, Heart, Users, AlertTriangle, Moon, Battery, Sun, Volume2, Moon as MoonIcon, Mic, Shield, Map, MapPin as MapPinIcon, Menu, Loader2, Pause, Play, AlertCircle, Eye, EyeOff, Mail, MessageCircle, PhoneCall, Info } from 'lucide-react'
 
 function EmergencyQuickStart({ emergencyMode, setEmergencyMode, triggerEmergency, lastLocation }) {
   const [networkStatus, setNetworkStatus] = useState('online')
